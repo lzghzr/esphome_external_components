@@ -1,0 +1,18 @@
+#pragma once
+
+#include "esphome/components/switch/switch.h"
+#include "../haier_ir_acyrh63.h"
+
+namespace esphome {
+namespace haier_ir_acyrh63 {
+
+class LockSwitch : public switch_::Switch, public Parented<HaierIrAcYrh63> {
+ public:
+  LockSwitch() = default;
+
+ protected:
+  void write_state(bool on) override;
+};
+
+}  // namespace haier_ir_acyrh63
+}  // namespace esphome

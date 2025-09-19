@@ -5,3 +5,6 @@
 
 ## haier-yr-m09
 硬件 - CT30W
+
+## haier-yr-h63
+硬件 - CT30W
