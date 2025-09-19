@@ -15,8 +15,6 @@ const uint32_t BIT_ONE_SPACE_US = 1650;
 // 也可以 TX 和 RX 分开设置
 const uint32_t BIT_ZERO_SPACE_US_TX = 580;
 const uint32_t BIT_ZERO_SPACE_US_RX = 650;
-// YR-M09 数据包大小为 9Byte, 即 72bit
-const unsigned int HAIER_IR_PACKET_BIT_SIZE = 72;
 
 // 数据包最后一位为校验码, 为前面所有字节的和
 uint8_t sum_bytes(const uint8_t *const start, const uint16_t length, const uint8_t init) {
@@ -27,6 +25,7 @@ uint8_t sum_bytes(const uint8_t *const start, const uint16_t length, const uint8
   }
   return checksum;
 }
+
 // 健康开关
 bool HaierIrAcYrm09::get_health_switch() {
   if (health_switch_ != nullptr) {
@@ -41,6 +40,10 @@ void HaierIrAcYrm09::set_health_switch() {
     health_switch_->publish_state(on);
   }
 }
+void HaierIrAcYrm09::set_health_switch_(switch_::Switch *sw) {
+  health_switch_ = sw;
+  set_health_switch();
+}
 // 电加热开关
 bool HaierIrAcYrm09::get_heating_switch() {
   if (heating_switch_ != nullptr) {
@@ -54,11 +57,6 @@ void HaierIrAcYrm09::set_heating_switch() {
     heating_switch_->state = on;
     heating_switch_->publish_state(on);
   }
-}
-// 注册健康和电加热开关
-void HaierIrAcYrm09::set_health_switch_(switch_::Switch *sw) {
-  health_switch_ = sw;
-  set_health_switch();
 }
 void HaierIrAcYrm09::set_heating_switch_(switch_::Switch *sw) {
   heating_switch_ = sw;
@@ -114,41 +112,6 @@ void HaierIrAcYrm09::set_swing_v(const bool on) {
   }
   _.SwingV = !on;
 }
-// 时间设置, 定时开关机相关, 基本没用, 只是 IRremoteESP8266 有就弄过来了
-uint16_t HaierIrAcYrm09::get_curr_time(void) const { return GETTIME(Curr); }
-void HaierIrAcYrm09::set_curr_time(const uint16_t nr_mins) { SETTIME(Curr, nr_mins); }
-
-int16_t HaierIrAcYrm09::get_on_timer(void) const {
-  if (_.OnTimer) {
-    return GETTIME(On);
-  } else {
-    return -1;
-  }
-}
-void HaierIrAcYrm09::set_on_timer(const uint16_t nr_mins) {
-  set_command(kHaierAcYrm09CmdTimerSet);
-  _.OnTimer = 1;
-
-  SETTIME(On, nr_mins);
-}
-int16_t HaierIrAcYrm09::get_off_timer(void) const {
-  if (_.OffTimer) {
-    return GETTIME(Off);
-  } else {
-    return -1;
-  }
-}
-void HaierIrAcYrm09::set_off_timer(const uint16_t nr_mins) {
-  set_command(kHaierAcYrm09CmdTimerSet);
-  _.OffTimer = 1;
-
-  SETTIME(Off, nr_mins);
-}
-void HaierIrAcYrm09::cancel_timers(void) {
-  set_command(kHaierAcYrm09CmdTimerCancel);
-  _.OffTimer = 0;
-  _.OnTimer = 0;
-}
 // 健康, YR-M09 未包含此功能
 bool HaierIrAcYrm09::get_health(void) const { return _.Health; }
 void HaierIrAcYrm09::set_health(const bool on) {
@@ -193,12 +156,14 @@ uint8_t HaierIrAcYrm09::get_fan(void) const {
       return kHaierAcYrm09FanLow;
     default:
       return kHaierAcYrm09FanAuto;
+    default:
+      break;
   }
 }
 void HaierIrAcYrm09::set_fan(const uint8_t speed) {
   if (climate::CLIMATE_MODE_FAN_ONLY == mode && kHaierAcYrm09FanAuto == speed) {
     fan_mode = climate::CLIMATE_FAN_LOW;
-    _.Fan = 3;
+    _.Fan = kHaierAcYrm09FanLow;
     return;
   }
   if (get_fan() == speed) {
@@ -215,6 +180,8 @@ void HaierIrAcYrm09::set_fan(const uint8_t speed) {
       break;
     case kHaierAcYrm09FanHigh:
       new_speed = 1;
+      break;
+    default:
       break;
   }
   set_command(kHaierAcYrm09CmdFan);
@@ -250,7 +217,43 @@ climate::ClimateTraits HaierIrAcYrm09::traits() {
   auto traits = climate_ir::ClimateIR::traits();
   traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_AUTO, climate::CLIMATE_MODE_COOL,
                               climate::CLIMATE_MODE_DRY, climate::CLIMATE_MODE_HEAT, climate::CLIMATE_MODE_FAN_ONLY});
+  traits.set_supports_action(true);
   return traits;
+}
+// 时间设置, 定时开关机相关, 基本没用, 只是 IRremoteESP8266 有就弄过来了
+uint16_t HaierIrAcYrm09::get_curr_time(void) const { return GETTIME(Curr); }
+void HaierIrAcYrm09::set_curr_time(const uint16_t nr_mins) { SETTIME(Curr, nr_mins); }
+
+int16_t HaierIrAcYrm09::get_on_timer(void) const {
+  if (_.OnTimer) {
+    return GETTIME(On);
+  } else {
+    return -1;
+  }
+}
+void HaierIrAcYrm09::set_on_timer(const uint16_t nr_mins) {
+  set_command(kHaierAcYrm09CmdTimerSet);
+  _.OnTimer = 1;
+
+  SETTIME(On, nr_mins);
+}
+int16_t HaierIrAcYrm09::get_off_timer(void) const {
+  if (_.OffTimer) {
+    return GETTIME(Off);
+  } else {
+    return -1;
+  }
+}
+void HaierIrAcYrm09::set_off_timer(const uint16_t nr_mins) {
+  set_command(kHaierAcYrm09CmdTimerSet);
+  _.OffTimer = 1;
+
+  SETTIME(Off, nr_mins);
+}
+void HaierIrAcYrm09::cancel_timers(void) {
+  set_command(kHaierAcYrm09CmdTimerCancel);
+  _.OffTimer = 0;
+  _.OnTimer = 0;
 }
 // 转换数据
 void HaierIrAcYrm09::transmit_state() {
@@ -261,15 +264,17 @@ void HaierIrAcYrm09::transmit_state() {
     }
     set_command(kHaierAcYrm09CmdOff);
   } else {
-    set_temp((uint8_t) target_temperature);
-
-    set_swing_v(climate::CLIMATE_SWING_VERTICAL == swing_mode);
-
     set_health(get_health_switch());
     set_health_switch();
 
     set_heating(get_heating_switch());
     set_heating_switch();
+
+    set_swing_v(climate::CLIMATE_SWING_VERTICAL == swing_mode);
+
+    set_sleep(climate::CLIMATE_PRESET_SLEEP == preset);
+
+    set_temp((uint8_t) target_temperature);
 
     switch (fan_mode.value()) {
       case climate::CLIMATE_FAN_AUTO:
@@ -288,8 +293,9 @@ void HaierIrAcYrm09::transmit_state() {
         break;
     }
 
-    set_sleep(climate::CLIMATE_PRESET_SLEEP == preset);
-
+    if (kHaierAcYrm09CmdOff == command && climate::CLIMATE_MODE_HEAT == mode) {
+      mode = last_mode;
+    }
     switch (mode) {
       case climate::CLIMATE_MODE_AUTO:
         set_mode(kHaierAcYrm09Auto);
@@ -313,6 +319,7 @@ void HaierIrAcYrm09::transmit_state() {
     if (kHaierAcYrm09CmdOff == command) {
       set_command(kHaierAcYrm09CmdOn);
     }
+    last_mode = mode;
   }
   if (!valid_checksum(_.remote_state)) {
     transmit_(_.remote_state);
@@ -361,7 +368,7 @@ bool HaierIrAcYrm09::on_receive(remote_base::RemoteReceiveData src) {
   }
 
   size_t size = src.size() - src.get_index() - 1;
-  if (size != HAIER_IR_PACKET_BIT_SIZE * 2) {
+  if (size != kHaierAcYrm09Bits * 2) {
     return false;
   }
 
@@ -404,7 +411,9 @@ void HaierIrAcYrm09::publish_state_() {
   if (get_command() == kHaierAcYrm09CmdOff) {
     mode = climate::CLIMATE_MODE_OFF;
   } else {
-    target_temperature = get_temp();
+    set_health_switch();
+
+    set_heating_switch();
 
     if (get_swing_v()) {
       swing_mode = climate::CLIMATE_SWING_VERTICAL;
@@ -412,9 +421,13 @@ void HaierIrAcYrm09::publish_state_() {
       swing_mode = climate::CLIMATE_SWING_OFF;
     }
 
-    set_health_switch();
+    if (get_sleep()) {
+      preset = climate::CLIMATE_PRESET_SLEEP;
+    } else {
+      preset = climate::CLIMATE_PRESET_NONE;
+    }
 
-    set_heating_switch();
+    target_temperature = get_temp();
 
     switch (get_fan()) {
       case kHaierAcYrm09FanAuto:
@@ -429,12 +442,8 @@ void HaierIrAcYrm09::publish_state_() {
       case kHaierAcYrm09FanHigh:
         fan_mode = climate::CLIMATE_FAN_HIGH;
         break;
-    }
-
-    if (get_sleep()) {
-      preset = climate::CLIMATE_PRESET_SLEEP;
-    } else {
-      preset = climate::CLIMATE_PRESET_NONE;
+      default:
+        break;
     }
 
     switch (get_mode()) {
@@ -452,6 +461,8 @@ void HaierIrAcYrm09::publish_state_() {
         break;
       case kHaierAcYrm09Fan:
         mode = climate::CLIMATE_MODE_FAN_ONLY;
+        break;
+      default:
         break;
     }
   }

@@ -4,6 +4,7 @@ substitutions:
   device_name: "haier-yr-m09"
   ir_send_pin: 14
   ir_recv_pin: 5
+  reset_pin: 4
   status_led_pin: 15
 
 esphome:
@@ -31,12 +32,12 @@ api:
               carrier_frequency: 38kHz
     - action: send_nec_ir
       variables:
-        address: int
-        command: int
+        address: string
+        command: string
       then:
         - remote_transmitter.transmit_nec:
-            address: !lambda 'return address;'
-            command: !lambda 'return command;'
+            address: !lambda 'return stoi(address, 0, 16);'
+            command: !lambda 'return stoi(command, 0, 16);'
 
 ota:
   - platform: esphome
@@ -63,12 +64,44 @@ external_components:
 status_led:
   pin: $status_led_pin
 
+binary_sensor:
+  - platform: gpio
+    id: ${device_id}_dump_pin
+    name: "IR dump"
+    icon: "mdi:record-rec"
+    pin:
+      number: $reset_pin
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    filters:
+      - delayed_on: 10ms
+
 remote_receiver:
   - id: ir_receiver
     pin:
       number: $ir_recv_pin
       inverted: True
     # dump: raw
+    on_raw:
+      - lambda: |-
+          if (id(${device_id}_dump_pin).state || id(${device_id}_dump_switch).state) {
+            std::string result;
+            result.reserve(x.size() * 8);
+            result = "[";
+            for (size_t i = 0; i < x.size(); ++i) {
+              if (i > 0) result += ", ";
+              result += std::to_string(x[i]);
+            }
+            result += "]";
+            ESP_LOGI("IR dump", "Raw data: %s", result.c_str());
+          }
+    on_nec:
+      - lambda: |-
+          if (id(${device_id}_dump_pin).state || id(${device_id}_dump_switch).state) {
+            ESP_LOGI("IR dump", "NEC: address=0x%04x command=0x%04x", x.address, x.command);
+          }
 
 remote_transmitter:
   - id: ir_transmitter
@@ -82,13 +115,18 @@ sensor:
     entity_id: !secret haier_yr_m09_temperature
 
 switch:
+  - platform: template
+    name: "IR dump"
+    id: ${device_id}_dump_switch
+    icon: "mdi:record-rec"
+    optimistic: True
   - platform: haier_ir_acyrm09
     haier_acyrm09_id: $device_id
     health:
-      name: "Health"
+      name: Health
       id: ${device_id}_health
     heating:
-      name: "Heating"
+      name: Heating
       id: ${device_id}_heating
 
 climate:

@@ -6,6 +6,7 @@
 namespace esphome {
 namespace haier_ir_acyrm09 {
 
+// YR-M09 数据包大小为 9Byte, 即 72bit
 const uint16_t kHaierAcYrm09StateLength = 9;
 const uint16_t kHaierAcYrm09Bits = kHaierAcYrm09StateLength * 8;
 
@@ -130,17 +131,6 @@ class HaierIrAcYrm09 : public climate_ir::ClimateIR {
   bool get_swing_v(void) const;
   void set_swing_v(const bool on);
 
-  uint16_t get_curr_time(void) const;
-  void set_curr_time(const uint16_t mins);
-
-  int16_t get_on_timer(void) const;
-  void set_on_timer(const uint16_t mins);
-
-  int16_t get_off_timer(void) const;
-  void set_off_timer(const uint16_t mins);
-
-  void cancel_timers(void);
-
   bool get_health(void) const;
   void set_health(const bool on);
 
@@ -156,6 +146,17 @@ class HaierIrAcYrm09 : public climate_ir::ClimateIR {
   uint8_t get_mode(void) const;
   void set_mode(const uint8_t mode);
 
+  uint16_t get_curr_time(void) const;
+  void set_curr_time(const uint16_t mins);
+
+  int16_t get_on_timer(void) const;
+  void set_on_timer(const uint16_t mins);
+
+  int16_t get_off_timer(void) const;
+  void set_off_timer(const uint16_t mins);
+
+  void cancel_timers(void);
+
   void transmit_state();
 
  protected:
@@ -164,6 +165,8 @@ class HaierIrAcYrm09 : public climate_ir::ClimateIR {
   HaierAcYrm09Protocol _ = {
       .remote_state = {kHaierAcYrm09Prefix, 0, 0, 0, 0, 0, 0, 0, 0},
   };
+  climate::ClimateMode last_mode = climate::CLIMATE_MODE_COOL;
+
   void checksum(void);
 
   climate::ClimateTraits traits() override;
