@@ -156,8 +156,6 @@ uint8_t HaierIrAcYrm09::get_fan(void) const {
       return kHaierAcYrm09FanLow;
     default:
       return kHaierAcYrm09FanAuto;
-    default:
-      break;
   }
 }
 void HaierIrAcYrm09::set_fan(const uint8_t speed) {
