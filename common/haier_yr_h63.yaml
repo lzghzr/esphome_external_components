@@ -1,0 +1,53 @@
+packages:
+  ir_remote: !include
+    file: ir_remote.yaml
+    vars:
+      ir_recv_pin: ${ir_recv_pin}
+      ir_send_pin: ${ir_send_pin}
+
+external_components:
+  - source:
+      type: local
+      path: external_components
+    components: [ haier_ir_acyrh63  ]
+
+switch:
+  - platform: haier_ir_acyrh63
+    haier_acyrh63_id: ${climate_id}
+    health:
+      name: Health
+      id: ${climate_id}_health
+    lock:
+      name: Lock
+      id: ${climate_id}_lock
+
+select:
+  - platform: haier_ir_acyrh63
+    haier_acyrh63_id: ${climate_id}
+    fresh:
+      name: Fresh
+      id: ${climate_id}_fresh
+    sterilize:
+      name: Sterilize
+      id: ${climate_id}_sterilize
+    vertical:
+      name: Vertical
+      id: ${climate_id}_vertical
+    horizontal:
+      name: Horizontal
+      id: ${climate_id}_horizontal
+
+button:
+  - platform: haier_ir_acyrh63
+    haier_acyrh63_id: ${climate_id}
+    light:
+      name: Light
+      id: ${climate_id}_light
+
+climate:
+  - platform: haier_ir_acyrh63
+    id: ${climate_id}
+    name: ${climate_name}
+    sensor: ${temperature_sensor}
+    receiver_id: ir_receiver
+    transmitter_id: ir_transmitter

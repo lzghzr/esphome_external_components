@@ -1,0 +1,45 @@
+api:
+  actions:
+    - action: send_raw_ir
+      variables:
+        raw_data: 'int[]'
+      then:
+        - remote_transmitter.transmit_raw:
+              code: !lambda 'return raw_data;'
+              carrier_frequency: 38kHz
+    - action: send_nec_ir
+      variables:
+        address: string
+        command: string
+      then:
+        - remote_transmitter.transmit_nec:
+            address: !lambda 'return stoi(address, 0, 16);'
+            command: !lambda 'return stoi(command, 0, 16);'
+
+remote_receiver:
+  - id: ir_receiver
+    pin:
+      number: ${ir_recv_pin}
+      inverted: True
+    dump: raw
+    on_nec:
+      - lambda: |-
+          std::string result;
+          result = "{type: nec, address: 0x";
+          result += format_hex(x.address);
+          result += ", command: 0x";
+          result += format_hex(x.command);
+          result += "}";
+          id(ir_code).publish_state(result);
+      - delay: 200ms
+      - lambda: 'id(ir_code).publish_state("reset");'
+
+remote_transmitter:
+  - id: ir_transmitter
+    pin: ${ir_send_pin}
+    carrier_duty_percent: 50%
+
+text_sensor:
+  - platform: template
+    id: ir_code
+    name: IR code

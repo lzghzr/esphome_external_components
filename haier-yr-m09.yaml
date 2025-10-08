@@ -2,14 +2,26 @@ substitutions:
   device_friendly_name: "Haier YR-M09"
   device_id: "haier_yr_m09"
   device_name: "haier-yr-m09"
-  ir_send_pin: 14
-  ir_recv_pin: 5
   reset_pin: 4
   status_led_pin: 15
 
+packages:
+  wifi: !include
+    file: common/wifi.yaml
+    vars:
+      ssid: ${device_friendly_name}
+  haier_yr_m09: !include
+    file: common/haier_yr_m09.yaml
+    vars:
+      ir_recv_pin: 5
+      ir_send_pin: 14
+      climate_id: ${device_id}
+      climate_name: ${device_friendly_name}
+      temperature_sensor: ${device_id}_temperature
+
 esphome:
-  name: $device_name
-  friendly_name: $device_friendly_name
+  name: ${device_name}
+  friendly_name: ${device_friendly_name}
 
 esp8266:
   board: esp_wroom_02
@@ -22,117 +34,16 @@ logger:
 api:
   encryption:
     key: !secret haier_yr_m09_key
-  actions:
-    - action: send_raw_ir
-      variables:
-        raw_data: 'int[]'
-      then:
-        - remote_transmitter.transmit_raw:
-              code: !lambda 'return raw_data;'
-              carrier_frequency: 38kHz
-    - action: send_nec_ir
-      variables:
-        address: string
-        command: string
-      then:
-        - remote_transmitter.transmit_nec:
-            address: !lambda 'return stoi(address, 0, 16);'
-            command: !lambda 'return stoi(command, 0, 16);'
 
 ota:
   - platform: esphome
     password:  !secret haier_yr_m09_password
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  domain: !secret domain
-
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
-  ap:
-    ssid: "Haier YR-M09 Hotspot"
-    password: !secret hotspot_password
-
-captive_portal:
-
-external_components:
-  - source:
-      type: local
-      path: external_components
-    components: [ haier_ir_acyrm09  ]
-
 status_led:
   pin: $status_led_pin
-
-binary_sensor:
-  - platform: gpio
-    id: ${device_id}_dump_pin
-    name: "IR dump"
-    icon: "mdi:record-rec"
-    pin:
-      number: $reset_pin
-      inverted: true
-      mode:
-        input: true
-        pullup: true
-    filters:
-      - delayed_on: 10ms
-
-remote_receiver:
-  - id: ir_receiver
-    pin:
-      number: $ir_recv_pin
-      inverted: True
-    # dump: raw
-    on_raw:
-      - lambda: |-
-          if (id(${device_id}_dump_pin).state || id(${device_id}_dump_switch).state) {
-            std::string result;
-            result.reserve(x.size() * 8);
-            result = "[";
-            for (size_t i = 0; i < x.size(); ++i) {
-              if (i > 0) result += ", ";
-              result += std::to_string(x[i]);
-            }
-            result += "]";
-            ESP_LOGI("IR dump", "Raw data: %s", result.c_str());
-          }
-    on_nec:
-      - lambda: |-
-          if (id(${device_id}_dump_pin).state || id(${device_id}_dump_switch).state) {
-            ESP_LOGI("IR dump", "NEC: address=0x%04x command=0x%04x", x.address, x.command);
-          }
-
-remote_transmitter:
-  - id: ir_transmitter
-    pin: $ir_send_pin
-    carrier_duty_percent: 50%
 
 # 外部温度计
 sensor:
   - platform: homeassistant
     id: ${device_id}_temperature
     entity_id: !secret haier_yr_m09_temperature
-
-switch:
-  - platform: template
-    name: "IR dump"
-    id: ${device_id}_dump_switch
-    icon: "mdi:record-rec"
-    optimistic: True
-  - platform: haier_ir_acyrm09
-    haier_acyrm09_id: $device_id
-    health:
-      name: Health
-      id: ${device_id}_health
-    heating:
-      name: Heating
-      id: ${device_id}_heating
-
-climate:
-  - platform: haier_ir_acyrm09
-    id: $device_id
-    name: $device_friendly_name
-    sensor: ${device_id}_temperature
-    receiver_id: ir_receiver
-    transmitter_id: ir_transmitter

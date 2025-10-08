@@ -137,6 +137,7 @@ void HaierIrAcYrh63::set_vertical_select() {
         value = vertical_select_->at(4).value();
         break;
       default:
+        value = vertical_select_->at(4).value();
         break;
     }
     vertical_select_->publish_state(value);
@@ -151,7 +152,7 @@ uint8_t HaierIrAcYrh63::get_horizontal_select() {
   if (horizontal_select_ != nullptr) {
     return horizontal_select_->active_index().value();
   }
-  return 7;
+  return kHaierAcYrh63SwingHAuto;
 }
 void HaierIrAcYrh63::set_horizontal_select() {
   if (horizontal_select_ != nullptr) {
