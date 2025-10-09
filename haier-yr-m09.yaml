@@ -13,8 +13,8 @@ packages:
   haier_yr_m09: !include
     file: common/haier_yr_m09.yaml
     vars:
-      ir_recv_pin: 3
-      ir_send_pin: 1
+      ir_recv_pin: 5
+      ir_send_pin: 14
       climate_id: ${device_id}
       climate_name: ${device_friendly_name}
       temperature_sensor: ${device_id}_temperature
