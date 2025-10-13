@@ -1,0 +1,50 @@
+substitutions:
+  status_led_pin: 8
+
+packages:
+  wifi: !include
+    file: common/wifi.yaml
+    vars:
+      ssid:  ESP32-C3 Super Mini
+  ir_remote: !include
+    file: common/ir_remote.yaml
+    vars:
+      ir_recv_pin: 1
+      ir_send_pin: 4
+  esp32c3_ble: !include common/esp32c3_ble.yaml
+  # ble_presence: !include common/ble_presence.yaml
+  rf_remote_443: !include
+    file: common/rf_remote_sw.yaml
+    vars:
+      rf_recv_pin: 0
+      rf_send_pin: 9
+  rf_remote_315: !include
+    file: common/rf_remote_sw.yaml
+    vars:
+      rf_recv_pin: 20
+      rf_send_pin: 21
+
+esphome:
+  name: esp32-c3-super-mini
+  friendly_name: ESP32-C3 Super Mini
+
+esp32:
+  variant: esp32c3
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret esp32_c3_super_mini_key
+
+ota:
+  - platform: esphome
+    password: !secret esp32_c3_super_mini_password
+
+status_led:
+  pin: ${status_led_pin}

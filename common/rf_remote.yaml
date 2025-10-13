@@ -1,35 +1,39 @@
 api:
   actions:
-    - action: send_raw_ir_${ir_send_pin}
+    - action: send_raw_rf_${rf_send_pin}
       variables:
         raw_data: 'int[]'
       then:
         - remote_transmitter.transmit_raw:
-            transmitter_id: ir_transmitter_${ir_send_pin}
+            transmitter_id: rf_transmitter_${rf_send_pin}
             code: !lambda 'return raw_data;'
-            carrier_frequency: 38kHz
-    - action: send_nec_ir
+            repeat:
+              times: 10
+              wait_time: 0s
+    - action: send_rc_switch_rf_${rf_send_pin}
       variables:
-        address: string
-        command: string
+        code: string
+        protocol: int
       then:
-        - remote_transmitter.transmit_nec:
-            transmitter_id: ir_transmitter_${ir_send_pin}
-            address: !lambda 'return stoi(address, 0, 16);'
-            command: !lambda 'return stoi(command, 0, 16);'
+        - remote_transmitter.transmit_rc_switch_raw:
+            transmitter_id: rf_transmitter_${rf_send_pin}
+            code: !lambda 'return code;'
+            protocol: !lambda 'return remote_base::RC_SWITCH_PROTOCOLS[protocol];'
+            repeat:
+              times: 10
+              wait_time: 0s
 
 remote_receiver:
-  - id: ir_receiver_${ir_recv_pin}
+  - id: rf_receiver_${rf_recv_pin}
     # rmt_symbols: 48
     # filter_symbols: 4
-    pin:
-      number: ${ir_recv_pin}
-      inverted: true
+    pin: ${rf_recv_pin}
+    tolerance: 50%
     # dump: all
     on_raw:
       - lambda: |-
-            if (!id(ir_dump_${ir_recv_pin}).state) return;
-            const char* TAG = "IR dump " + ${ir_recv_pin};
+            if (!id(rf_dump_${rf_recv_pin}).state) return;
+            const char* TAG = "RF dump " + ${rf_recv_pin};
             char buffer[256];
             uint32_t buffer_offset = 0;
             buffer_offset += sprintf(buffer, "Received Raw: ");
@@ -62,32 +66,32 @@ remote_receiver:
             if (buffer_offset != 0) {
               ESP_LOGI(TAG, "%s", buffer);
             }
-    on_nec:
+    on_rc_switch:
       - lambda: |-
           std::string result;
-          result = "{type: nec, address: 0x";
-          result += format_hex(x.address);
-          result += ", command: 0x";
-          result += format_hex(x.command);
+          result = "{type: rc_switch, code: ";
+          result += format_bin(x.code).substr(40);
+          result += ", protocol: ";
+          result += to_string(x.protocol);
           result += "}";
-          id(ir_code_${ir_recv_pin}).publish_state(result);
+          id(rf_code_${rf_recv_pin}).publish_state(result);
       - delay: 200ms
-      - lambda: 'id(ir_code_${ir_recv_pin}).publish_state("reset");'
+      - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'
 
 remote_transmitter:
-  - id: ir_transmitter_${ir_send_pin}
-    pin: ${ir_send_pin}
-    carrier_duty_percent: 50%
+  - id: rf_transmitter_${rf_send_pin}
+    pin: ${rf_send_pin}
+    carrier_duty_percent: 100%
 
 text_sensor:
   - platform: template
-    id: ir_code_${ir_recv_pin}
-    name: IR code ${ir_recv_pin}
+    id: rf_code_${rf_recv_pin}
+    name: RF code ${rf_recv_pin}
     icon: "mdi:code-json"
 
 switch:
   - platform: template
-    id: ir_dump_${ir_recv_pin}
-    name: IR dump ${ir_recv_pin}
+    id: rf_dump_${rf_recv_pin}
+    name: RF dump ${rf_recv_pin}
     icon: "mdi:record-rec"
     optimistic: true
