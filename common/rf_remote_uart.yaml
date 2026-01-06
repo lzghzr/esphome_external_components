@@ -1,3 +1,7 @@
+esphome:
+  includes:
+    - common/helpers.h
+
 api:
   actions:
     - action: send_uart_rf_${rf_send_pin}
@@ -7,13 +11,7 @@ api:
         - uart.write:
             id: uart_rf_${rf_send_pin}
             data: !lambda |-
-              std::vector<uint8_t> result;
-              result.reserve(raw_data.size());
-              for (int value : raw_data)
-              {
-                result.push_back(static_cast<uint8_t>(value));
-              }
-              return result;
+              return action_int_to_uint(raw_data);
 
 uart:
   id: uart_rf_${rf_send_pin}
@@ -26,18 +24,7 @@ uart:
       delimiter: "\r\n"
     sequence:
       - lambda: |-
-          std::string result;
-          result = "[";
-          for (size_t i = 0; i < bytes.size(); i++)
-          {
-            if (i > 0)
-            {
-              result += ", ";
-            }
-            result += "0x";
-            result += format_hex(bytes[i]);
-          }
-          result += "]";
+          std::string result = format_vector_with_prefix(bytes);
           id(rf_code_${rf_recv_pin}).publish_state(result);
       - delay: 200ms
       - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'

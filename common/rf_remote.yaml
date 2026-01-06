@@ -1,3 +1,7 @@
+esphome:
+  includes:
+    - common/helpers.h
+
 api:
   actions:
     - action: send_raw_rf_${rf_send_pin}
@@ -6,7 +10,7 @@ api:
       then:
         - remote_transmitter.transmit_raw:
             transmitter_id: rf_transmitter_${rf_send_pin}
-            code: !lambda 'return raw_data;'
+            code: !lambda 'std::vector<long int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
             repeat:
               times: 10
               wait_time: 0s
@@ -32,51 +36,13 @@ remote_receiver:
     # dump: all
     on_raw:
       - lambda: |-
-            if (!id(rf_dump_${rf_recv_pin}).state) return;
-            const char* TAG = "RF dump " + ${rf_recv_pin};
-            char buffer[256];
-            uint32_t buffer_offset = 0;
-            buffer_offset += sprintf(buffer, "Received Raw: ");
-
-            for (int32_t i = 0; i < x.size() - 1; i++) {
-              const int32_t value = x[i];
-              const uint32_t remaining_length = sizeof(buffer) - buffer_offset;
-              int written;
-
-              if (i + 1 < x.size() - 1) {
-                written = snprintf(buffer + buffer_offset, remaining_length, "%" PRId32 ", ", value);
-              } else {
-                written = snprintf(buffer + buffer_offset, remaining_length, "%" PRId32, value);
-              }
-
-              if (written < 0 || written >= int(remaining_length)) {
-                buffer[buffer_offset] = '\0';
-                ESP_LOGI(TAG, "%s", buffer);
-                buffer_offset = 0;
-                written = sprintf(buffer, "  ");
-                if (i + 1 < x.size() - 1) {
-                  written += sprintf(buffer + written, "%" PRId32 ", ", value);
-                } else {
-                  written += sprintf(buffer + written, "%" PRId32, value);
-                }
-              }
-
-              buffer_offset += written;
-            }
-            if (buffer_offset != 0) {
-              ESP_LOGI(TAG, "%s", buffer);
-            }
+          if (!id(rf_dump_${rf_recv_pin}).state) return;
+          const char* TAG = "RF dump ${rf_recv_pin}";
+          on_raw_dump(TAG, x);
     on_rc_switch:
       - lambda: |-
-          std::string result;
-          result = "{type: rc_switch, code: ";
-          result += format_bin(x.code).substr(40);
-          result += ", protocol: ";
-          result += to_string(x.protocol);
-          result += "}";
+          std::string result = format_rc_switch_data(x);
           id(rf_code_${rf_recv_pin}).publish_state(result);
-      - delay: 200ms
-      - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'
 
 remote_transmitter:
   - id: rf_transmitter_${rf_send_pin}

@@ -1,10 +1,3 @@
-packages:
-  ir_remote: !include
-    file: ir_remote.yaml
-    vars:
-      ir_recv_pin: ${ir_recv_pin}
-      ir_send_pin: ${ir_send_pin}
-
 external_components:
   - source:
       type: local
@@ -26,5 +19,5 @@ climate:
     id: ${climate_id}
     name: ${climate_name}
     sensor: ${temperature_sensor}
-    receiver_id: ir_receiver
-    transmitter_id: ir_transmitter
+    receiver_id: ${ir_receiver}
+    transmitter_id: ${ir_transmitter}

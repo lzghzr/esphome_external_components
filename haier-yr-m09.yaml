@@ -10,11 +10,16 @@ packages:
     file: common/wifi.yaml
     vars:
       ssid: ${device_friendly_name}
-  haier_yr_m09: !include
-    file: common/haier_yr_m09.yaml
+  ir_remote: !include
+    file: common/ir_remote.yaml
     vars:
       ir_recv_pin: 5
       ir_send_pin: 14
+  haier_yr_m09: !include
+    file: common/haier_yr_m09.yaml
+    vars:
+      ir_receiver: ir_receiver_5
+      ir_transmitter: ir_transmitter_14
       climate_id: ${device_id}
       climate_name: ${device_friendly_name}
       temperature_sensor: ${device_id}_temperature
