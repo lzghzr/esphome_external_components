@@ -130,6 +130,7 @@ class HaierIrAcYrh63 : public climate_ir::ClimateIR {
                               {climate::CLIMATE_FAN_AUTO, climate::CLIMATE_FAN_LOW, climate::CLIMATE_FAN_MEDIUM,
                                climate::CLIMATE_FAN_HIGH},
                               {}, {climate::CLIMATE_PRESET_NONE, climate::CLIMATE_PRESET_SLEEP}) {}
+  void setup() override;
 
   bool get_health_switch();
   void set_health_switch();
@@ -218,10 +219,8 @@ class HaierIrAcYrh63 : public climate_ir::ClimateIR {
   select::Select *vertical_select_{nullptr};
   select::Select *horizontal_select_{nullptr};
   button::Button *light_button_{nullptr};
-  HaierAcYrh63Protocol _ = {
-      .remote_state = {kHaierAcYrh63Model, 0x9C, 0xE0, 0, 0, 0, 0, 0, 0},
-  };
-  climate::ClimateMode last_mode = climate::CLIMATE_MODE_COOL;
+  ESPPreferenceObject base_rtc_;
+  HaierAcYrh63Protocol _;
 
   void checksum(void);
 

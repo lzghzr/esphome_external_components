@@ -63,7 +63,10 @@ void HaierIrAcYrm09::set_heating_switch_(switch_::Switch *sw) {
   set_heating_switch();
 }
 // 计算 remote_state 校验码
-void HaierIrAcYrm09::checksum(void) { _.Sum = sum_bytes(_.remote_state, kHaierAcYrm09StateLength - 1); }
+void HaierIrAcYrm09::checksum(void) {
+  _.Sum = sum_bytes(_.remote_state, kHaierAcYrm09StateLength - 1);
+  base_rtc_.save(&_);
+}
 // 检查 state 校验码
 bool HaierIrAcYrm09::valid_checksum(uint8_t state[], const uint16_t length) {
   if (length < 2) {
@@ -210,12 +213,22 @@ void HaierIrAcYrm09::set_mode(const uint8_t mode) {
   set_command(kHaierAcYrm09CmdMode);
   _.Mode = mode;
 }
+void HaierIrAcYrm09::setup() {
+  climate_ir::ClimateIR::setup();
+  constexpr uint32_t restore_settings_version = 0x695BA610;
+  base_rtc_ =
+      global_preferences->make_preference<HaierAcYrm09Protocol>(get_preference_hash() ^ restore_settings_version);
+  if (!base_rtc_.load(&_)) {
+    _ = {kHaierAcYrm09Prefix, 0, 0, 0, 0, 0, 0, 0, 0};
+  }
+  publish_state_();
+}
 // 将 "制冷/制热" 替换为 "自动", 也可以不动
 climate::ClimateTraits HaierIrAcYrm09::traits() {
   auto traits = climate_ir::ClimateIR::traits();
   traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_AUTO, climate::CLIMATE_MODE_COOL,
                               climate::CLIMATE_MODE_DRY, climate::CLIMATE_MODE_HEAT, climate::CLIMATE_MODE_FAN_ONLY});
-  traits.set_supports_action(true);
+  traits.add_feature_flags(climate::CLIMATE_SUPPORTS_ACTION);
   return traits;
 }
 // 时间设置, 定时开关机相关, 基本没用, 只是 IRremoteESP8266 有就弄过来了
@@ -291,33 +304,31 @@ void HaierIrAcYrm09::transmit_state() {
         break;
     }
 
-    if (kHaierAcYrm09CmdOff == command && climate::CLIMATE_MODE_HEAT == mode) {
-      mode = last_mode;
-    }
-    switch (mode) {
-      case climate::CLIMATE_MODE_AUTO:
-        set_mode(kHaierAcYrm09Auto);
-        break;
-      case climate::CLIMATE_MODE_COOL:
-        set_mode(kHaierAcYrm09Cool);
-        break;
-      case climate::CLIMATE_MODE_DRY:
-        set_mode(kHaierAcYrm09Dry);
-        break;
-      case climate::CLIMATE_MODE_HEAT:
-        set_mode(kHaierAcYrm09Heat);
-        break;
-      case climate::CLIMATE_MODE_FAN_ONLY:
-        set_mode(kHaierAcYrm09Fan);
-        break;
-      default:
-        break;
+    if (kHaierAcYrm09CmdOn == command || climate::CLIMATE_MODE_HEAT != mode) {
+      switch (mode) {
+        case climate::CLIMATE_MODE_AUTO:
+          set_mode(kHaierAcYrm09Auto);
+          break;
+        case climate::CLIMATE_MODE_COOL:
+          set_mode(kHaierAcYrm09Cool);
+          break;
+        case climate::CLIMATE_MODE_DRY:
+          set_mode(kHaierAcYrm09Dry);
+          break;
+        case climate::CLIMATE_MODE_HEAT:
+          set_mode(kHaierAcYrm09Heat);
+          break;
+        case climate::CLIMATE_MODE_FAN_ONLY:
+          set_mode(kHaierAcYrm09Fan);
+          break;
+        default:
+          break;
+      }
     }
 
     if (kHaierAcYrm09CmdOff == command) {
       set_command(kHaierAcYrm09CmdOn);
     }
-    last_mode = mode;
   }
   if (!valid_checksum(_.remote_state)) {
     transmit_(_.remote_state);

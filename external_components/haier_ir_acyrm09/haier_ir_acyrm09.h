@@ -110,6 +110,8 @@ class HaierIrAcYrm09 : public climate_ir::ClimateIR {
                               {climate::CLIMATE_SWING_OFF, climate::CLIMATE_SWING_VERTICAL},
                               {climate::CLIMATE_PRESET_NONE, climate::CLIMATE_PRESET_SLEEP}) {}
 
+  void setup() override;
+
   bool get_heating_switch();
   void set_heating_switch();
   bool get_health_switch();
@@ -162,10 +164,8 @@ class HaierIrAcYrm09 : public climate_ir::ClimateIR {
  protected:
   switch_::Switch *heating_switch_{nullptr};
   switch_::Switch *health_switch_{nullptr};
-  HaierAcYrm09Protocol _ = {
-      .remote_state = {kHaierAcYrm09Prefix, 0, 0, 0, 0, 0, 0, 0, 0},
-  };
-  climate::ClimateMode last_mode = climate::CLIMATE_MODE_COOL;
+  ESPPreferenceObject base_rtc_;
+  HaierAcYrm09Protocol _;
 
   void checksum(void);
 

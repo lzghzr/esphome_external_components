@@ -165,7 +165,10 @@ void HaierIrAcYrh63::set_horizontal_select_(select::Select *s) {
   set_horizontal_select();
 }
 // 计算 remote_state 校验码
-void HaierIrAcYrh63::checksum(void) { _.Sum = sum_bytes(_.remote_state, kHaierAcYrh63StateLength - 1); }
+void HaierIrAcYrh63::checksum(void) {
+  _.Sum = sum_bytes(_.remote_state, kHaierAcYrh63StateLength - 1);
+  base_rtc_.save(&_);
+}
 // 检查 state 校验码
 bool HaierIrAcYrh63::valid_checksum(uint8_t state[], const uint16_t length) {
   if (length < 2) {
@@ -375,6 +378,16 @@ void HaierIrAcYrh63::set_off_timer(const uint16_t mins) {
   }
   _.TimerMode = mode;
 }
+void HaierIrAcYrh63::setup() {
+  climate_ir::ClimateIR::setup();
+  constexpr uint32_t restore_settings_version = 0x695D01E1;
+  base_rtc_ =
+      global_preferences->make_preference<HaierAcYrh63Protocol>(get_preference_hash() ^ restore_settings_version);
+  if (!base_rtc_.load(&_)) {
+    _ = {kHaierAcYrh63Model, 0x9C, 0xE0, 0, 0, 0, 0, 0, 0};
+  }
+  publish_state_();
+}
 // 将 "制冷/制热" 替换为 "自动", 也可以不动
 climate::ClimateTraits HaierIrAcYrh63::traits() {
   auto traits = climate_ir::ClimateIR::traits();
@@ -431,34 +444,32 @@ void HaierIrAcYrh63::transmit_state() {
         break;
     }
 
-    if (!power && climate::CLIMATE_MODE_HEAT == mode) {
-      mode = last_mode;
-    }
-    switch (mode) {
-      case climate::CLIMATE_MODE_AUTO:
-        set_mode(kHaierAcYrh63Auto);
-        break;
-      case climate::CLIMATE_MODE_COOL:
-        set_mode(kHaierAcYrh63Cool);
-        break;
-      case climate::CLIMATE_MODE_DRY:
-        set_mode(kHaierAcYrh63Dry);
-        break;
-      case climate::CLIMATE_MODE_HEAT:
-        set_mode(kHaierAcYrh63Heat);
-        break;
-      case climate::CLIMATE_MODE_FAN_ONLY:
-        set_mode(kHaierAcYrh63Fan);
-        break;
-      default:
-        break;
+    if (power || climate::CLIMATE_MODE_HEAT != mode) {
+      switch (mode) {
+        case climate::CLIMATE_MODE_AUTO:
+          set_mode(kHaierAcYrh63Auto);
+          break;
+        case climate::CLIMATE_MODE_COOL:
+          set_mode(kHaierAcYrh63Cool);
+          break;
+        case climate::CLIMATE_MODE_DRY:
+          set_mode(kHaierAcYrh63Dry);
+          break;
+        case climate::CLIMATE_MODE_HEAT:
+          set_mode(kHaierAcYrh63Heat);
+          break;
+        case climate::CLIMATE_MODE_FAN_ONLY:
+          set_mode(kHaierAcYrh63Fan);
+          break;
+        default:
+          break;
+      }
     }
 
     if (!power) {
       set_button(kHaierAcYrh63ButtonPower);
       set_power(true);
     }
-    last_mode = mode;
   }
   if (!valid_checksum(_.remote_state)) {
     transmit_(_.remote_state);
