@@ -1,6 +1,9 @@
-esphome:
-  includes:
-    - common/helpers.h
+packages:
+  ir_remote: !include
+    file: rf_remote_code.yaml
+    vars:
+      ir_recv_pin: ${rf_recv_pin}
+      ir_send_pin: ${rf_send_pin}
 
 external_components:
   - source:
@@ -8,34 +11,11 @@ external_components:
       path: external_components
     components: [ sw_remote_receiver, sw_remote_transmitter ]
 
-api:
-  actions:
-    - action: send_raw_rf_${rf_send_pin}
-      variables:
-        raw_data: 'int[]'
-      then:
-        - remote_transmitter.transmit_raw:
-            transmitter_id: rf_transmitter_${rf_send_pin}
-            code: !lambda 'std::vector<long int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
-            repeat:
-              times: 10
-              wait_time: 0s
-    - action: send_rc_switch_rf_${rf_send_pin}
-      variables:
-        code: string
-        protocol: int
-      then:
-        - remote_transmitter.transmit_rc_switch_raw:
-            transmitter_id: rf_transmitter_${rf_send_pin}
-            code: !lambda 'return code;'
-            protocol: !lambda 'return remote_base::RC_SWITCH_PROTOCOLS[protocol];'
-            repeat:
-              times: 10
-              wait_time: 0s
-
 sw_remote_receiver:
   - id: rf_receiver_${rf_recv_pin}
-    pin: ${rf_recv_pin}
+    pin:
+      number: ${rf_recv_pin}
+      mode: INPUT_PULLDOWN
     tolerance: 50%
     # dump: all
     on_raw:
@@ -52,15 +32,3 @@ sw_remote_transmitter:
   - id: rf_transmitter_${rf_send_pin}
     pin: ${rf_send_pin}
     carrier_duty_percent: 100%
-
-text_sensor:
-  - platform: template
-    id: rf_code_${rf_recv_pin}
-    name: RF code ${rf_recv_pin}
-
-switch:
-  - platform: template
-    id: rf_dump_${rf_recv_pin}
-    name: RF dump ${rf_recv_pin}
-    icon: "mdi:record-rec"
-    optimistic: true

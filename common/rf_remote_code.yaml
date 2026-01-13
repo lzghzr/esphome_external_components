@@ -1,0 +1,52 @@
+esphome:
+  includes:
+    - common/helpers.h
+
+api:
+  actions:
+    - action: send_raw_rf_${rf_send_pin}
+      variables:
+        raw_data: 'int[]'
+      then:
+        - remote_transmitter.transmit_raw:
+            transmitter_id: rf_transmitter_${rf_send_pin}
+            code: !lambda 'std::vector<long int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
+            repeat:
+              times: 10
+              wait_time: 0s
+    - action: send_rc_switch_rf_${rf_send_pin}
+      variables:
+        code: string
+        protocol: int
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            transmitter_id: rf_transmitter_${rf_send_pin}
+            code: !lambda 'return code;'
+            protocol: !lambda 'return remote_base::RC_SWITCH_PROTOCOLS[protocol];'
+            repeat:
+              times: 10
+              wait_time: 0s
+    - action: send_ev1527_rf_${rf_send_pin}
+      variables:
+        code: string
+        pulse_length: int
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            transmitter_id: rf_transmitter_${rf_send_pin}
+            code: !lambda 'return code;'
+            protocol: !lambda 'return remote_base::RCSwitchBase(pulse_length, pulse_length * 31, pulse_length, pulse_length * 3, pulse_length * 3, pulse_length, false);'
+            repeat:
+              times: 10
+              wait_time: 0s
+
+text_sensor:
+  - platform: template
+    id: rf_code_${rf_recv_pin}
+    name: RF code ${rf_recv_pin}
+
+switch:
+  - platform: template
+    id: rf_dump_${rf_recv_pin}
+    name: RF dump ${rf_recv_pin}
+    icon: "mdi:record-rec"
+    optimistic: true
