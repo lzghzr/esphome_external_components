@@ -54,18 +54,6 @@ RemoteReceiverComponent = sw_remote_receiver_ns.class_(
 )
 
 
-def validate_config(config):
-    if CORE.is_esp32:
-        variant = esp32.get_esp32_variant()
-        if variant in (esp32.const.VARIANT_ESP32, esp32.const.VARIANT_ESP32S2):
-            max_idle = 65535
-        else:
-            max_idle = 32767
-        if config[CONF_IDLE].total_microseconds > max_idle:
-            raise cv.Invalid(f"config 'idle' exceeds the maximum value of {max_idle}us")
-    return config
-
-
 def validate_tolerance(value):
     if isinstance(value, dict):
         return TOLERANCE_SCHEMA(value)
@@ -109,7 +97,6 @@ CONFIG_SCHEMA = remote_base.validate_triggers(
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
-    .add_extra(validate_config)
 )
 
 
@@ -145,6 +132,7 @@ FILTER_SOURCE_FILES = filter_source_files_from_platform(
             PlatformFramework.BK72XX_ARDUINO,
             PlatformFramework.RTL87XX_ARDUINO,
             PlatformFramework.LN882X_ARDUINO,
+            PlatformFramework.RP2040_ARDUINO,
         },
     }
 )
