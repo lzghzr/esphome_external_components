@@ -1,9 +1,6 @@
 packages:
-  ir_remote: !include
+  rf_remote: !include
     file: rf_remote_code.yaml
-    vars:
-      ir_recv_pin: ${rf_recv_pin}
-      ir_send_pin: ${rf_send_pin}
 
 external_components:
   - source:
@@ -25,7 +22,7 @@ sw_remote_receiver:
           on_raw_dump(TAG, x);
     on_rc_switch:
       - lambda: |-
-          std::string result= format_rc_switch_data(x);
+          std::string result = format_rc_switch_data(x);
           id(rf_code_${rf_recv_pin}).publish_state(result);
 
 sw_remote_transmitter:

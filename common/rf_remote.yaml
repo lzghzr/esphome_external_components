@@ -1,9 +1,6 @@
 packages:
-  ir_remote: !include
+  rf_remote: !include
     file: rf_remote_code.yaml
-    vars:
-      ir_recv_pin: ${rf_recv_pin}
-      ir_send_pin: ${rf_send_pin}
 
 remote_receiver:
   - id: rf_receiver_${rf_recv_pin}
