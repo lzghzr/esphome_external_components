@@ -13,16 +13,13 @@ packages:
       ir_send_pin: 4
   esp32c3_ble: !include common/esp32c3_ble.yaml
   # ble_presence: !include common/ble_presence.yaml
-  rf_remote_443: !include
-    file: common/rf_remote_sw.yaml
+  rf_remote: !include
+    file: common/rf_remote_ab.yaml
     vars:
-      rf_recv_pin: 0
-      rf_send_pin: 9
-  rf_remote_315: !include
-    file: common/rf_remote_sw.yaml
-    vars:
-      rf_recv_pin: 20
-      rf_send_pin: 21
+      rf_recv_pin_a: 5
+      rf_send_pin_a: 9
+      rf_recv_pin_b: 20
+      rf_send_pin_b: 21
 
 esphome:
   name: esp32-c3-super-mini

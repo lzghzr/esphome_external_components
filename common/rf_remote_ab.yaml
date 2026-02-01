@@ -1,0 +1,24 @@
+packages:
+  rf_remote_a: !include
+    file: rf_remote_ab_code.yaml
+    vars:
+      rf_recv_pin: ${rf_recv_pin_a}
+      rf_send_pin: ${rf_send_pin_a}
+  rf_remote_b: !include
+    file: rf_remote_ab_code.yaml
+    vars:
+      rf_recv_pin: ${rf_recv_pin_b}
+      rf_send_pin: ${rf_send_pin_b}
+
+external_components:
+  - source:
+      type: local
+      path: external_components
+    components: [ remote_transmitter_sw ]
+
+remote_transmitter_sw:
+  - id: rf_transmitter_ab
+    pin_a: ${rf_send_pin_a}
+    pin_b: ${rf_send_pin_b}
+    carrier_duty_percent: 100%
+    non_blocking: true
