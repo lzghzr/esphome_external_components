@@ -25,3 +25,4 @@ remote_transmitter:
   - id: rf_transmitter_${rf_send_pin}
     pin: ${rf_send_pin}
     carrier_duty_percent: 100%
+    non_blocking: true
