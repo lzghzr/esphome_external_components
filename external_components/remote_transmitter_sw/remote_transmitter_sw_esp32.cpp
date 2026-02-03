@@ -1,8 +1,20 @@
 #include "remote_transmitter_sw.h"
 
 #ifdef USE_ESP32
+#include <driver/gpio.h>
 
 namespace esphome::remote_transmitter_sw {
+void RemoteTransmitterComponent::setup() {
+  gpio_config_t io_conf = {
+      .pin_bit_mask = BIT(gpio_num_t(this->pin_a_->get_pin())) | BIT(gpio_num_t(this->pin_b_->get_pin())),
+      .mode = GPIO_MODE_INPUT,
+      .pull_up_en = GPIO_PULLUP_DISABLE,
+      .pull_down_en = GPIO_PULLDOWN_ENABLE,
+      .intr_type = GPIO_INTR_DISABLE,
+  };
+  gpio_config(&io_conf);
+  remote_transmitter::RemoteTransmitterComponent::setup();
+};
 void RemoteTransmitterComponent::set_pin(gpio_num_t gpio_num) {
   esp_err_t error;
   if (this->initialized_ && this->pin_num != gpio_num) {
