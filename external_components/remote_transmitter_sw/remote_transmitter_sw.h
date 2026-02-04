@@ -5,16 +5,14 @@
 namespace esphome::remote_transmitter_sw {
 class RemoteTransmitterComponent : public remote_transmitter::RemoteTransmitterComponent {
  public:
+  void setup() { remote_transmitter::RemoteTransmitterComponent::setup(); };
   explicit RemoteTransmitterComponent(InternalGPIOPin *pin) : remote_transmitter::RemoteTransmitterComponent(pin) {}
   void dump_config() { remote_transmitter::RemoteTransmitterComponent::dump_config(); }
   float get_setup_priority() const { return remote_transmitter::RemoteTransmitterComponent::get_setup_priority(); }
 #ifdef USE_ESP32
-  void setup() override;
   void set_pin(gpio_num_t gpio_num);
   void set_pin_a(InternalGPIOPin *pin_a) { pin_a_ = pin_a; }
   void set_pin_b(InternalGPIOPin *pin_b) { pin_b_ = pin_b; }
-#else
-  void setup() { remote_transmitter::RemoteTransmitterComponent::setup(); };
 #endif
  protected:
 #ifdef USE_ESP32

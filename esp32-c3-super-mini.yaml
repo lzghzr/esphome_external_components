@@ -16,8 +16,8 @@ packages:
   rf_remote: !include
     file: common/rf_remote_ab.yaml
     vars:
-      rf_recv_pin_a: 5
-      rf_send_pin_a: 9
+      rf_recv_pin_a: 0
+      rf_send_pin_a: 5
       rf_recv_pin_b: 20
       rf_send_pin_b: 21
 
