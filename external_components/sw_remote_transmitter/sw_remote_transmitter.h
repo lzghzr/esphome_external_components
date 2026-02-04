@@ -22,8 +22,8 @@ class RemoteTransmitterComponent : public remote_base::RemoteTransmitterBase, pu
 
   void digital_write(bool value);
 
-  Trigger<> *get_transmit_trigger() const { return this->transmit_trigger_; };
-  Trigger<> *get_complete_trigger() const { return this->complete_trigger_; };
+  Trigger<> *get_transmit_trigger() { return &this->transmit_trigger_; }
+  Trigger<> *get_complete_trigger() { return &this->complete_trigger_; }
 
  protected:
   void send_internal(uint32_t send_times, uint32_t send_wait) override;
@@ -39,8 +39,8 @@ class RemoteTransmitterComponent : public remote_base::RemoteTransmitterBase, pu
 
   uint8_t carrier_duty_percent_;
 
-  Trigger<> *transmit_trigger_{new Trigger<>()};
-  Trigger<> *complete_trigger_{new Trigger<>()};
+  Trigger<> transmit_trigger_;
+  Trigger<> complete_trigger_;
 };
 
 }  // namespace sw_remote_transmitter

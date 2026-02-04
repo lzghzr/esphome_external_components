@@ -1,7 +1,6 @@
 from esphome import pins
 import esphome.codegen as cg
-from esphome.components import esp32, remote_base
-from esphome.config_helpers import filter_source_files_from_platform
+from esphome.components import remote_base
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_BUFFER_SIZE,
@@ -13,9 +12,8 @@ from esphome.const import (
     CONF_TOLERANCE,
     CONF_TYPE,
     CONF_VALUE,
-    PlatformFramework,
 )
-from esphome.core import CORE, TimePeriod
+from esphome.core import TimePeriod
 
 AUTO_LOAD = ["remote_base"]
 sw_remote_receiver_ns = cg.esphome_ns.namespace("sw_remote_receiver")
@@ -121,18 +119,3 @@ async def to_code(config):
     cg.add(var.set_buffer_size(config[CONF_BUFFER_SIZE]))
     cg.add(var.set_filter_us(config[CONF_FILTER]))
     cg.add(var.set_idle_us(config[CONF_IDLE]))
-
-
-FILTER_SOURCE_FILES = filter_source_files_from_platform(
-    {
-        "sw_remote_receiver.cpp": {
-            PlatformFramework.ESP32_ARDUINO,
-            PlatformFramework.ESP32_IDF,
-            PlatformFramework.ESP8266_ARDUINO,
-            PlatformFramework.BK72XX_ARDUINO,
-            PlatformFramework.RTL87XX_ARDUINO,
-            PlatformFramework.LN882X_ARDUINO,
-            PlatformFramework.RP2040_ARDUINO,
-        },
-    }
-)

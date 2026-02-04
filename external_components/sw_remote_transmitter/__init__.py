@@ -1,13 +1,11 @@
 from esphome import automation, pins
 import esphome.codegen as cg
-from esphome.components import esp32, remote_base
-from esphome.config_helpers import filter_source_files_from_platform
+from esphome.components import remote_base
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_CARRIER_DUTY_PERCENT,
     CONF_ID,
     CONF_PIN,
-    PlatformFramework,
 )
 
 AUTO_LOAD = ["remote_base"]
@@ -21,7 +19,6 @@ RemoteTransmitterComponent = sw_remote_transmitter_ns.class_(
     "RemoteTransmitterComponent", remote_base.RemoteTransmitterBase, cg.Component
 )
 
-MULTI_CONF = True
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(RemoteTransmitterComponent),
@@ -50,16 +47,3 @@ async def to_code(config):
         await automation.build_automation(
             var.get_complete_trigger(), [], on_complete_config
         )
-
-FILTER_SOURCE_FILES = filter_source_files_from_platform(
-    {
-        "sw_remote_transmitter.cpp": {
-            PlatformFramework.ESP32_ARDUINO,
-            PlatformFramework.ESP32_IDF,
-            PlatformFramework.ESP8266_ARDUINO,
-            PlatformFramework.BK72XX_ARDUINO,
-            PlatformFramework.RTL87XX_ARDUINO,
-            PlatformFramework.LN882X_ARDUINO,
-        },
-    }
-)
