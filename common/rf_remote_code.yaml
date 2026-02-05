@@ -46,6 +46,7 @@ text_sensor:
   - platform: template
     id: rf_code_${rf_recv_pin}
     name: RF code ${rf_recv_pin}
+    icon: "mdi:code-json"
 
 switch:
   - platform: template

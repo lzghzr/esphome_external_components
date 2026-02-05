@@ -24,6 +24,8 @@ sw_remote_receiver:
       - lambda: |-
           std::string result = format_rc_switch_data(x);
           id(rf_code_${rf_recv_pin}).publish_state(result);
+      - delay: 200ms
+      - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'
 
 sw_remote_transmitter:
   - id: rf_transmitter_${rf_send_pin}

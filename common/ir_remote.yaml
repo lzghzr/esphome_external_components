@@ -24,7 +24,7 @@ api:
 
 remote_receiver:
   - id: ir_receiver_${ir_recv_pin}
-    # rmt_symbols: 48
+    # rmt_symbols: 48 # 同时使用时需要限制内存使用
     # filter_symbols: 4
     pin:
       number: ${ir_recv_pin}

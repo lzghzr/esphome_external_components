@@ -4,7 +4,7 @@ packages:
 
 remote_receiver:
   - id: rf_receiver_${rf_recv_pin}
-    # rmt_symbols: 48
+    # rmt_symbols: 48 # 同时使用时需要限制内存使用
     # filter_symbols: 4
     pin:
       number: ${rf_recv_pin}
@@ -20,6 +20,8 @@ remote_receiver:
       - lambda: |-
           std::string result = format_rc_switch_data(x);
           id(rf_code_${rf_recv_pin}).publish_state(result);
+      - delay: 200ms
+      - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'
 
 remote_transmitter:
   - id: rf_transmitter_${rf_send_pin}

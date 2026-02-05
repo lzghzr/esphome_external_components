@@ -24,6 +24,8 @@ sw_remote_receiver:
       - lambda: |-
           std::string result= format_rc_switch_data(x);
           id(rf_code_${rf_recv_pin}).publish_state(result);
+      - delay: 200ms
+      - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'
 
 api:
   actions:
@@ -75,6 +77,7 @@ text_sensor:
   - platform: template
     id: rf_code_${rf_recv_pin}
     name: RF code ${rf_recv_pin}
+    icon: "mdi:code-json"
 
 switch:
   - platform: template
