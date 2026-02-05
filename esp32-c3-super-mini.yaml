@@ -13,6 +13,17 @@ packages:
       ir_send_pin: 4
   esp32c3_ble: !include common/esp32c3_ble.yaml
   # ble_presence: !include common/ble_presence.yaml
+  # rf_remote_433: !include
+  #   file: common/rf_remote.yaml
+  #   vars:
+  #     rf_recv_pin: 0
+  #     rf_send_pin: 5
+  #     rf_frequency: 433 MHz
+  # rf_remote_315: !include
+  #   file: common/rf_remote_sw.yaml
+  #   vars:
+  #     rf_recv_pin: 20
+  #     rf_send_pin: 21
   rf_remote: !include
     file: common/rf_remote_ab.yaml
     vars:
@@ -33,6 +44,7 @@ esp32:
 # Enable logging
 logger:
   level: DEBUG
+  # baud_rate: 0 // esphome 文档要求关闭
 
 # Enable Home Assistant API
 api:

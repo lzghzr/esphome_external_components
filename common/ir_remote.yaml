@@ -46,6 +46,7 @@ remote_transmitter:
   - id: ir_transmitter_${ir_send_pin}
     pin: ${ir_send_pin}
     carrier_duty_percent: 50%
+    non_blocking: true
 
 text_sensor:
   - platform: template
@@ -59,3 +60,13 @@ switch:
     name: IR dump ${ir_recv_pin}
     icon: "mdi:record-rec"
     optimistic: true
+
+infrared:
+  - platform: ir_rf_proxy
+    name: IR Transmitter
+    id: tx_ir_${ir_send_pin}
+    remote_transmitter_id: ir_transmitter_${ir_send_pin}
+  - platform: ir_rf_proxy
+    name: IR Receiver
+    id: rx_ir_${ir_recv_pin}
+    remote_receiver_id: ir_receiver_${ir_recv_pin}
