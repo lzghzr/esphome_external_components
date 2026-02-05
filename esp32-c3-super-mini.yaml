@@ -31,6 +31,13 @@ packages:
       rf_send_pin_a: 5
       rf_recv_pin_b: 20
       rf_send_pin_b: 21
+  ld2401: !include
+    file: common/ld2401.yaml
+    vars:
+      tx_pin: 2
+      rx_pin: 10
+
+
 
 esphome:
   name: esp32-c3-super-mini
