@@ -29,14 +29,14 @@ remote_transmitter:
     carrier_duty_percent: 100%
     non_blocking: true
 
-infrared:
-  - platform: ir_rf_proxy
-    name: ${rf_frequency} Transmitter
-    id: tx_rf_${rf_send_pin}
-    remote_transmitter_id: rf_transmitter_${rf_send_pin}
-    frequency: ${rf_frequency}
-  - platform: ir_rf_proxy
-    name: ${rf_frequency} Receiver
-    id: rx_rf_${rf_recv_pin}
-    remote_receiver_id: rf_receiver_${rf_recv_pin}
-    frequency: ${rf_frequency}
+# infrared:
+#   - platform: ir_rf_proxy
+#     name: ${rf_frequency} Transmitter
+#     id: tx_rf_${rf_send_pin}
+#     remote_transmitter_id: rf_transmitter_${rf_send_pin}
+#     frequency: ${rf_frequency}
+#   - platform: ir_rf_proxy
+#     name: ${rf_frequency} Receiver
+#     id: rx_rf_${rf_recv_pin}
+#     remote_receiver_id: rf_receiver_${rf_recv_pin}
+#     frequency: ${rf_frequency}

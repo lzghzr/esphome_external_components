@@ -61,12 +61,12 @@ switch:
     icon: "mdi:record-rec"
     optimistic: true
 
-infrared:
-  - platform: ir_rf_proxy
-    name: IR Transmitter
-    id: tx_ir_${ir_send_pin}
-    remote_transmitter_id: ir_transmitter_${ir_send_pin}
-  - platform: ir_rf_proxy
-    name: IR Receiver
-    id: rx_ir_${ir_recv_pin}
-    remote_receiver_id: ir_receiver_${ir_recv_pin}
+# infrared:
+#   - platform: ir_rf_proxy
+#     name: IR Transmitter
+#     id: tx_ir_${ir_send_pin}
+#     remote_transmitter_id: ir_transmitter_${ir_send_pin}
+#   - platform: ir_rf_proxy
+#     name: IR Receiver
+#     id: rx_ir_${ir_recv_pin}
+#     remote_receiver_id: ir_receiver_${ir_recv_pin}
