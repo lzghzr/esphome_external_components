@@ -5,8 +5,7 @@
 
 #include <vector>
 
-namespace esphome {
-namespace sw_remote_transmitter {
+namespace esphome::sw_remote_transmitter {
 
 class RemoteTransmitterComponent : public remote_base::RemoteTransmitterBase, public Component {
  public:
@@ -43,5 +42,4 @@ class RemoteTransmitterComponent : public remote_base::RemoteTransmitterBase, pu
   Trigger<> complete_trigger_;
 };
 
-}  // namespace sw_remote_transmitter
-}  // namespace esphome
+}  // namespace esphome::sw_remote_transmitter

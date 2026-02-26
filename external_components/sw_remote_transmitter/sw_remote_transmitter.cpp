@@ -2,8 +2,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/application.h"
 
-namespace esphome {
-namespace sw_remote_transmitter {
+namespace esphome::sw_remote_transmitter {
 
 static const char *const TAG = "sw_remote_transmitter";
 
@@ -99,5 +98,4 @@ void RemoteTransmitterComponent::send_internal(uint32_t send_times, uint32_t sen
   this->complete_trigger_.trigger();
 }
 
-}  // namespace sw_remote_transmitter
-}  // namespace esphome
+}  // namespace esphome::sw_remote_transmitter

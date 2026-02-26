@@ -380,9 +380,7 @@ void HaierIrAcYrh63::set_off_timer(const uint16_t mins) {
 }
 void HaierIrAcYrh63::setup() {
   climate_ir::ClimateIR::setup();
-  constexpr uint32_t restore_settings_version = 0x695D01E1;
-  base_rtc_ =
-      global_preferences->make_preference<HaierAcYrh63Protocol>(get_preference_hash() ^ restore_settings_version);
+  base_rtc_ = make_entity_preference<HaierAcYrh63Protocol>();
   if (!base_rtc_.load(&_)) {
     _ = {kHaierAcYrh63Model, 0x9C, 0xE0, 0, 0, 0, 0, 0, 0};
   }

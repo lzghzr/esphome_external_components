@@ -215,9 +215,7 @@ void HaierIrAcYrm09::set_mode(const uint8_t mode) {
 }
 void HaierIrAcYrm09::setup() {
   climate_ir::ClimateIR::setup();
-  constexpr uint32_t restore_settings_version = 0x695BA610;
-  base_rtc_ =
-      global_preferences->make_preference<HaierAcYrm09Protocol>(get_preference_hash() ^ restore_settings_version);
+  base_rtc_ = make_entity_preference<HaierAcYrm09Protocol>();
   if (!base_rtc_.load(&_)) {
     _ = {kHaierAcYrm09Prefix, 0, 0, 0, 0, 0, 0, 0, 0};
   }
