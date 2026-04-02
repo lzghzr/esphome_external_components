@@ -13,12 +13,12 @@ packages:
       ir_send_pin: 4
   esp32c3_ble: !include common/esp32c3_ble.yaml
   # ble_presence: !include common/ble_presence.yaml
-  # rf_remote_433: !include
-  #   file: common/rf_remote.yaml
-  #   vars:
-  #     rf_recv_pin: 0
-  #     rf_send_pin: 5
-  #     rf_frequency: 433 MHz
+  rf_remote_433: !include
+    file: common/rf_remote.yaml
+    vars:
+      rf_recv_pin: 0
+      rf_send_pin: 5
+      rf_frequency: 433 MHz
   # rf_remote_315: !include
   #   file: common/rf_remote_sw.yaml
   #   vars:

@@ -10,9 +10,7 @@ external_components:
 
 sw_remote_receiver:
   - id: rf_receiver_${rf_recv_pin}
-    pin:
-      number: ${rf_recv_pin}
-      mode: INPUT_PULLDOWN
+    pin: ${rf_recv_pin}
     tolerance: 50%
     # dump: all
     on_raw:

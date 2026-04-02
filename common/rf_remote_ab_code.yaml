@@ -10,9 +10,7 @@ external_components:
 
 sw_remote_receiver:
   - id: rf_receiver_${rf_recv_pin}
-    pin:
-      number: ${rf_recv_pin}
-      mode: INPUT_PULLDOWN
+    pin: ${rf_recv_pin}
     tolerance: 50%
     # dump: all
     on_raw:
@@ -38,7 +36,7 @@ api:
             id(rf_transmitter_ab).set_pin((gpio_num_t)${rf_send_pin});
         - remote_transmitter.transmit_raw:
             transmitter_id: rf_transmitter_ab
-            code: !lambda 'std::vector<long int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
+            code: !lambda 'std::vector<int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
             repeat:
               times: !lambda 'return times;'
               wait_time: 0s
