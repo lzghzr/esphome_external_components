@@ -1,40 +1,43 @@
+substitutions:
+  frequency_fmt: ${frequency.replace(" ", "").lower()}
+
 packages:
   rf_remote: !include
     file: rf_remote_code.yaml
 
 remote_receiver:
-  - id: rf_receiver_${rf_recv_pin}
+  - id: rf_receiver_${frequency_fmt}
     # rmt_symbols: 48 # 同时使用时需要限制内存使用
     # filter_symbols: 4
-    pin: ${rf_recv_pin}
+    pin: ${recv_pin}
     tolerance: 50%
     # dump: all
     on_raw:
       - lambda: |-
-          if (!id(rf_dump_${rf_recv_pin}).state) return;
-          const char* TAG = "RF dump ${rf_recv_pin}";
+          if (!id(rf_dump_${frequency_fmt}).state) return;
+          const char* TAG = "RF dump ${frequency_fmt}";
           on_raw_dump(TAG, x);
     on_rc_switch:
       - lambda: |-
           std::string result = format_rc_switch_data(x);
-          id(rf_code_${rf_recv_pin}).publish_state(result);
+          id(rf_code_${frequency_fmt}).publish_state(result);
       - delay: 200ms
-      - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'
+      - lambda: 'id(rf_code_${frequency_fmt}).publish_state("reset");'
 
 remote_transmitter:
-  - id: rf_transmitter_${rf_send_pin}
-    pin: ${rf_send_pin}
+  - id: rf_transmitter_${frequency_fmt}
+    pin: ${send_pin}
     carrier_duty_percent: 100%
     non_blocking: true
 
 infrared:
   - platform: ir_rf_proxy
-    name: ${rf_frequency} Transmitter
-    id: tx_rf_${rf_send_pin}
-    remote_transmitter_id: rf_transmitter_${rf_send_pin}
-    frequency: ${rf_frequency}
+    name: ${frequency} Transmitter
+    id: tx_rf_${frequency_fmt}
+    remote_transmitter_id: rf_transmitter_${frequency_fmt}
+    frequency: ${frequency}
   - platform: ir_rf_proxy
-    name: ${rf_frequency} Receiver
-    id: rx_rf_${rf_recv_pin}
-    remote_receiver_id: rf_receiver_${rf_recv_pin}
-    frequency: ${rf_frequency}
+    name: ${frequency} Receiver
+    id: rx_rf_${frequency_fmt}
+    remote_receiver_id: rf_receiver_${frequency_fmt}
+    frequency: ${frequency}

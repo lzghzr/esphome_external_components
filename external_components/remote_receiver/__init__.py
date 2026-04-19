@@ -16,7 +16,7 @@ from esphome.const import (
 from esphome.core import TimePeriod
 
 AUTO_LOAD = ["remote_base"]
-sw_remote_receiver_ns = cg.esphome_ns.namespace("sw_remote_receiver")
+remote_receiver_ns = cg.esphome_ns.namespace("remote_receiver")
 remote_base_ns = cg.esphome_ns.namespace("remote_base")
 
 ToleranceMode = remote_base_ns.enum("ToleranceMode")
@@ -47,7 +47,7 @@ TOLERANCE_SCHEMA = cv.typed_schema(
     enum=TOLERANCE_MODE,
 )
 
-RemoteReceiverComponent = sw_remote_receiver_ns.class_(
+RemoteReceiverComponent = remote_receiver_ns.class_(
     "RemoteReceiverComponent", remote_base.RemoteReceiverBase, cg.Component
 )
 

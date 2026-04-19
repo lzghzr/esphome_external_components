@@ -4,38 +4,38 @@ esphome:
 
 api:
   actions:
-    - action: send_raw_rf_${rf_send_pin}
+    - action: send_raw_rf_${frequency_fmt}
       variables:
         raw_data: 'int[]'
         times: int
       then:
         - remote_transmitter.transmit_raw:
-            transmitter_id: rf_transmitter_${rf_send_pin}
-            code: !lambda 'std::vector<int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
+            transmitter_id: rf_transmitter_${frequency_fmt}
+            code: !lambda 'std::vector<long int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
             repeat:
               times: !lambda 'return times;'
               wait_time: 0s
-    - action: send_rc_switch_rf_${rf_send_pin}
+    - action: send_rc_switch_rf_${frequency_fmt}
       variables:
         code: string
         protocol: int
         times: int
       then:
         - remote_transmitter.transmit_rc_switch_raw:
-            transmitter_id: rf_transmitter_${rf_send_pin}
+            transmitter_id: rf_transmitter_${frequency_fmt}
             code: !lambda 'return code;'
             protocol: !lambda 'return remote_base::RC_SWITCH_PROTOCOLS[protocol];'
             repeat:
               times: !lambda 'return times;'
               wait_time: 0s
-    - action: send_ev1527_rf_${rf_send_pin}
+    - action: send_ev1527_rf_${frequency_fmt}
       variables:
         code: string
         pulse_length: int
         times: int
       then:
         - remote_transmitter.transmit_rc_switch_raw:
-            transmitter_id: rf_transmitter_${rf_send_pin}
+            transmitter_id: rf_transmitter_${frequency_fmt}
             code: !lambda 'return code;'
             protocol: !lambda 'return remote_base::RCSwitchBase(pulse_length, pulse_length * 31, pulse_length, pulse_length * 3, pulse_length * 3, pulse_length, false);'
             repeat:
@@ -44,13 +44,13 @@ api:
 
 text_sensor:
   - platform: template
-    id: rf_code_${rf_recv_pin}
-    name: RF code ${rf_recv_pin}
+    id: rf_code_${frequency_fmt}
+    name: RF code ${frequency_fmt}
     icon: "mdi:code-json"
 
 switch:
   - platform: template
-    id: rf_dump_${rf_recv_pin}
-    name: RF dump ${rf_recv_pin}
+    id: rf_dump_${frequency_fmt}
+    name: RF dump ${frequency_fmt}
     icon: "mdi:record-rec"
     optimistic: true

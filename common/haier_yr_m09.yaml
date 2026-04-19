@@ -19,5 +19,5 @@ climate:
     id: ${climate_id}
     name: ${climate_name}
     sensor: ${temperature_sensor}
-    receiver_id: ${ir_receiver}
-    transmitter_id: ${ir_transmitter}
+    receiver_id: ${receiver}
+    transmitter_id: ${transmitter}

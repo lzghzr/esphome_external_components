@@ -1,0 +1,12 @@
+external_components:
+  - source:
+      type: local
+      path: external_components
+    components: [remote_receiver, remote_transmitter]
+
+remote_transmitter:
+  - id: rf_transmitter_pins
+    pin: ${send_pins[0]}
+    pins: ${send_pins[1:]}
+    carrier_duty_percent: 100%
+    non_blocking: true

@@ -38,7 +38,7 @@ std::string format_rc_switch_data(const remote_base::RCSwitchData &data) {
   result += "}";
   return result;
 }
-std::vector<uint8_t> action_int_to_uint(const std::vector<int> &data) {
+std::vector<uint8_t> action_int_to_uint(const std::vector<long int> &data) {
   std::vector<uint8_t> result;
   result.reserve(data.size());
   for (int value : data) {
@@ -46,7 +46,7 @@ std::vector<uint8_t> action_int_to_uint(const std::vector<int> &data) {
   }
   return result;
 }
-bool on_raw_dump(const char *TAG, std::vector<int> src) {
+bool on_raw_dump(const char *TAG, std::vector<long int> src) {
   char buffer[256];
   uint32_t buffer_offset = 0;
   buffer_offset += sprintf(buffer, "Received Raw: ");

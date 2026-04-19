@@ -17,6 +17,7 @@ from esphome.const import (
     CONF_PINS,
     CONF_RMT_SYMBOLS,
     CONF_USE_DMA,
+    CONF_VALUE,
     PlatformFramework,
 )
 from esphome.core import CORE
@@ -31,49 +32,69 @@ CONF_ON_TRANSMIT = "on_transmit"
 CONF_ON_COMPLETE = "on_complete"
 CONF_TRANSMITTER_ID = remote_base.CONF_TRANSMITTER_ID
 
-remote_transmitter_sw_ns = cg.esphome_ns.namespace("remote_transmitter_sw")
-RemoteTransmitterComponent = remote_transmitter_sw_ns.class_(
+remote_transmitter_ns = cg.esphome_ns.namespace("remote_transmitter")
+RemoteTransmitterComponent = remote_transmitter_ns.class_(
     "RemoteTransmitterComponent", remote_base.RemoteTransmitterBase, cg.Component
 )
+DigitalWriteAction = remote_transmitter_ns.class_(
+    "DigitalWriteAction",
+    automation.Action,
+    cg.Parented.template(RemoteTransmitterComponent),
+)
+
 
 MULTI_CONF = True
-CONFIG_SCHEMA = cv.Schema(
-    {
-        cv.GenerateID(): cv.declare_id(RemoteTransmitterComponent),
-        cv.Required(CONF_PIN): pins.gpio_output_pin_schema,
-        cv.Required(CONF_CARRIER_DUTY_PERCENT): cv.All(
-            cv.percentage_int, cv.Range(min=1, max=100)
-        ),
-        cv.Optional(CONF_PINS): cv.All(cv.ensure_list(pins.gpio_output_pin_schema)),
-        cv.Optional(CONF_CLOCK_RESOLUTION): cv.All(
-            cv.only_on_esp32,
-            esp32_rmt.validate_clock_resolution(),
-        ),
-        cv.Optional(CONF_EOT_LEVEL): cv.All(cv.only_on_esp32, cv.boolean),
-        cv.Optional(CONF_USE_DMA): cv.All(
-            esp32.only_on_variant(
-                supported=[esp32.VARIANT_ESP32P4, esp32.VARIANT_ESP32S3]
+CONFIG_SCHEMA = (
+    cv.Schema(
+        {
+            cv.GenerateID(): cv.declare_id(RemoteTransmitterComponent),
+            cv.Required(CONF_PIN): pins.gpio_output_pin_schema,
+            cv.Required(CONF_CARRIER_DUTY_PERCENT): cv.All(
+                cv.percentage_int, cv.Range(min=1, max=100)
             ),
-            cv.boolean,
-        ),
-        cv.SplitDefault(
-            CONF_RMT_SYMBOLS,
-            esp32=64,
-            esp32_c2=cv.UNDEFINED,
-            esp32_c3=48,
-            esp32_c5=48,
-            esp32_c6=48,
-            esp32_c61=cv.UNDEFINED,
-            esp32_h2=48,
-            esp32_p4=48,
-            esp32_s2=64,
-            esp32_s3=48,
-        ): cv.All(cv.only_on_esp32, cv.int_range(min=2)),
-        cv.Optional(CONF_NON_BLOCKING): cv.All(cv.only_on_esp32, cv.boolean),
-        cv.Optional(CONF_ON_TRANSMIT): automation.validate_automation(single=True),
-        cv.Optional(CONF_ON_COMPLETE): automation.validate_automation(single=True),
-    }
-).extend(cv.COMPONENT_SCHEMA)
+            cv.Optional(CONF_PINS): cv.All(cv.ensure_list(pins.gpio_output_pin_schema)),
+            cv.Optional(CONF_CLOCK_RESOLUTION): cv.All(
+                cv.only_on_esp32,
+                esp32_rmt.validate_clock_resolution(),
+            ),
+            cv.Optional(CONF_EOT_LEVEL): cv.All(cv.only_on_esp32, cv.boolean),
+            cv.Optional(CONF_USE_DMA): cv.All(
+                esp32.only_on_variant(
+                    supported=[esp32.VARIANT_ESP32P4, esp32.VARIANT_ESP32S3]
+                ),
+                cv.boolean,
+            ),
+            cv.SplitDefault(
+                CONF_RMT_SYMBOLS,
+                esp32=64,
+                esp32_c2=cv.UNDEFINED,
+                esp32_c3=48,
+                esp32_c5=48,
+                esp32_c6=48,
+                esp32_c61=cv.UNDEFINED,
+                esp32_h2=48,
+                esp32_p4=48,
+                esp32_s2=64,
+                esp32_s3=48,
+            ): cv.All(cv.only_on_esp32, cv.int_range(min=2)),
+            cv.Optional(CONF_NON_BLOCKING): cv.All(cv.only_on_esp32, cv.boolean),
+            cv.Optional(CONF_ON_TRANSMIT): automation.validate_automation(single=True),
+            cv.Optional(CONF_ON_COMPLETE): automation.validate_automation(single=True),
+        }
+    )
+    .extend(cv.COMPONENT_SCHEMA)
+    .add_extra(
+        esp32_rmt.validate_rmt_not_supported(
+            [
+                CONF_CLOCK_RESOLUTION,
+                CONF_EOT_LEVEL,
+                CONF_USE_DMA,
+                CONF_RMT_SYMBOLS,
+                CONF_NON_BLOCKING,
+            ]
+        )
+    )
+)
 
 
 def _validate_non_blocking(config):
@@ -91,6 +112,28 @@ def _validate_non_blocking(config):
 
 
 FINAL_VALIDATE_SCHEMA = _validate_non_blocking
+
+DIGITAL_WRITE_ACTION_SCHEMA = cv.maybe_simple_value(
+    {
+        cv.GenerateID(CONF_TRANSMITTER_ID): cv.use_id(RemoteTransmitterComponent),
+        cv.Required(CONF_VALUE): cv.templatable(cv.boolean),
+    },
+    key=CONF_VALUE,
+)
+
+
+@automation.register_action(
+    "remote_transmitter.digital_write",
+    DigitalWriteAction,
+    DIGITAL_WRITE_ACTION_SCHEMA,
+    synchronous=True,
+)
+async def digital_write_action_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_TRANSMITTER_ID])
+    template_ = await cg.templatable(config[CONF_VALUE], args, cg.bool_)
+    cg.add(var.set_value(template_))
+    return var
 
 
 async def to_code(config):
@@ -139,11 +182,11 @@ async def to_code(config):
 
 FILTER_SOURCE_FILES = filter_source_files_from_platform(
     {
-        "remote_transmitter_sw_rmt.cpp": {
+        "remote_transmitter_rmt.cpp": {
             PlatformFramework.ESP32_ARDUINO,
             PlatformFramework.ESP32_IDF,
         },
-        "remote_transmitter_sw.cpp": {
+        "remote_transmitter.cpp": {
             PlatformFramework.ESP32_ARDUINO,
             PlatformFramework.ESP32_IDF,
             PlatformFramework.ESP8266_ARDUINO,

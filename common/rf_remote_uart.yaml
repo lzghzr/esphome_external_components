@@ -4,19 +4,19 @@ esphome:
 
 api:
   actions:
-    - action: send_uart_rf_${rf_send_pin}
+    - action: send_uart_rf_${send_pin}
       variables:
         raw_data: int[]
       then:
         - uart.write:
-            id: uart_rf_${rf_send_pin}
+            id: uart_rf_${send_pin}
             data: !lambda |-
               return action_int_to_uint(raw_data);
 
 uart:
-  id: uart_rf_${rf_send_pin}
-  rx_pin: ${rf_recv_pin}
-  tx_pin: ${rf_send_pin}
+  id: uart_rf_${send_pin}
+  rx_pin: ${recv_pin}
+  tx_pin: ${send_pin}
   baud_rate: 9600
   debug:
     dummy_receiver: true
@@ -25,11 +25,11 @@ uart:
     sequence:
       - lambda: |-
           std::string result = format_vector_with_prefix(bytes);
-          id(rf_code_${rf_recv_pin}).publish_state(result);
+          id(rf_code_${recv_pin}).publish_state(result);
       - delay: 200ms
-      - lambda: 'id(rf_code_${rf_recv_pin}).publish_state("reset");'
+      - lambda: 'id(rf_code_${recv_pin}).publish_state("reset");'
 
 text_sensor:
   - platform: template
-    id: rf_code_${rf_recv_pin}
-    name: RF code ${rf_recv_pin}
+    id: rf_code_${recv_pin}
+    name: RF code ${recv_pin}

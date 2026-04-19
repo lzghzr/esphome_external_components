@@ -6,38 +6,47 @@ packages:
     file: common/wifi.yaml
     vars:
       ssid:  ESP32-C3 Super Mini
-  ir_remote: !include
-    file: common/ir_remote.yaml
-    vars:
-      ir_recv_pin: 1
-      ir_send_pin: 4
   esp32c3_ble: !include common/esp32c3_ble.yaml
   # ble_presence: !include common/ble_presence.yaml
-  rf_remote_433: !include
-    file: common/rf_remote.yaml
-    vars:
-      rf_recv_pin: 0
-      rf_send_pin: 5
-      rf_frequency: 433 MHz
-  # rf_remote_315: !include
-  #   file: common/rf_remote_sw.yaml
-  #   vars:
-  #     rf_recv_pin: 20
-  #     rf_send_pin: 21
-  rf_remote: !include
-    file: common/rf_remote_ab.yaml
-    vars:
-      rf_recv_pin_a: 0
-      rf_send_pin_a: 5
-      rf_recv_pin_b: 20
-      rf_send_pin_b: 21
   ld2401: !include
     file: common/ld2401.yaml
     vars:
       tx_pin: 2
       rx_pin: 10
-
-
+  ir_remote: !include
+    file: common/ir_remote.yaml
+    vars:
+      recv_pin: 1
+      send_pin: 4
+      frequency: 38 kHz
+  # rf_remote_433: !include
+  #   file: common/rf_remote.yaml
+  #   vars:
+  #     rf_recv_pin: 0
+  #     rf_send_pin: 5
+  #     rf_frequency: 433 MHz
+  # rf_remote_315: !include
+  #   file: common/rf_remote_sw.yaml
+  #   vars:
+  #     rf_recv_pin: 20
+  #     rf_send_pin: 21
+  #     rf_frequency: 315 MHz
+  rf_remote_pins: !include
+    file: common/rf_remote_pins_code.yaml
+    vars:
+      send_pins: [5, 21]
+  rf_remote_433: !include
+    file: common/rf_remote_pins.yaml
+    vars:
+      recv_pin: 0
+      send_pin: 5
+      frequency: 433 MHz
+  rf_remote_315: !include
+    file: common/rf_remote_pins.yaml
+    vars:
+      recv_pin: 20
+      send_pin: 21
+      frequency: 315 MHz
 
 esphome:
   name: esp32-c3-super-mini

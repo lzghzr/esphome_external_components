@@ -2,71 +2,75 @@ esphome:
   includes:
     - common/helpers.h
 
+substitutions:
+  frequency_fmt: ${frequency.replace(" ", "").lower()}
+
 api:
   actions:
-    - action: send_raw_ir_${ir_send_pin}
+    - action: send_raw_ir_${frequency_fmt}
       variables:
         raw_data: 'int[]'
       then:
         - remote_transmitter.transmit_raw:
-            transmitter_id: ir_transmitter_${ir_send_pin}
-            code: !lambda 'std::vector<int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
+            transmitter_id: ir_transmitter_${frequency_fmt}
+            code: !lambda 'std::vector<long int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;'
             carrier_frequency: 38kHz
-    - action: send_nec_ir_${ir_send_pin}
+    - action: send_nec_ir_${frequency_fmt}
       variables:
         address: string
         command: string
       then:
         - remote_transmitter.transmit_nec:
-            transmitter_id: ir_transmitter_${ir_send_pin}
+            transmitter_id: ir_transmitter_${frequency_fmt}
             address: !lambda 'return stoi(address, 0, 16);'
             command: !lambda 'return stoi(command, 0, 16);'
 
 remote_receiver:
-  - id: ir_receiver_${ir_recv_pin}
+  - id: ir_receiver_${frequency_fmt}
     # rmt_symbols: 48 # 同时使用时需要限制内存使用
     # filter_symbols: 4
     pin:
-      number: ${ir_recv_pin}
+      number: ${recv_pin}
       inverted: true
     # dump: all
     on_raw:
       - lambda: |-
-          if (!id(ir_dump_${ir_recv_pin}).state) return;
-          const char* TAG = "IR dump ${ir_recv_pin}";
+          if (!id(ir_dump_${frequency_fmt}).state) return;
+          const char* TAG = "IR dump ${frequency_fmt}";
           on_raw_dump(TAG, x);
     on_nec:
       - lambda: |-
           std::string result= format_nec_data(x);
-          id(ir_code_${ir_recv_pin}).publish_state(result);
+          id(ir_code_${frequency_fmt}).publish_state(result);
       - delay: 200ms
-      - lambda: 'id(ir_code_${ir_recv_pin}).publish_state("reset");'
+      - lambda: 'id(ir_code_${frequency_fmt}).publish_state("reset");'
 
 remote_transmitter:
-  - id: ir_transmitter_${ir_send_pin}
-    pin: ${ir_send_pin}
+  - id: ir_transmitter_${frequency_fmt}
+    pin: ${send_pin}
     carrier_duty_percent: 50%
     non_blocking: true
 
 text_sensor:
   - platform: template
-    id: ir_code_${ir_recv_pin}
-    name: IR code ${ir_recv_pin}
+    id: ir_code_${frequency_fmt}
+    name: IR code ${frequency_fmt}
     icon: "mdi:code-json"
 
 switch:
   - platform: template
-    id: ir_dump_${ir_recv_pin}
-    name: IR dump ${ir_recv_pin}
+    id: ir_dump_${frequency_fmt}
+    name: IR dump ${frequency_fmt}
     icon: "mdi:record-rec"
     optimistic: true
 
 infrared:
   - platform: ir_rf_proxy
-    name: IR Transmitter
-    id: tx_ir_${ir_send_pin}
-    remote_transmitter_id: ir_transmitter_${ir_send_pin}
+    name: ${frequency} Transmitter
+    id: tx_ir_${frequency_fmt}
+    remote_transmitter_id: ir_transmitter_${frequency_fmt}
   - platform: ir_rf_proxy
-    name: IR Receiver
-    id: rx_ir_${ir_recv_pin}
-    remote_receiver_id: ir_receiver_${ir_recv_pin}
+    name: ${frequency} Receiver
+    id: rx_ir_${frequency_fmt}
+    receiver_frequency: ${frequency_fmt}
+    remote_receiver_id: ir_receiver_${frequency_fmt}

@@ -1,0 +1,94 @@
+esphome:
+  includes:
+    - common/helpers.h
+
+substitutions:
+  frequency_fmt: ${frequency.replace(" ", "").lower()}
+
+remote_receiver:
+  - id: rf_receiver_${frequency_fmt}
+    pin: ${recv_pin}
+    tolerance: 50%
+    # dump: all
+    on_raw:
+      - lambda: |-
+          if (!id(rf_dump_${frequency_fmt}).state) return;
+          const char* TAG = "RF dump ${frequency_fmt}";
+          on_raw_dump(TAG, x);
+    on_rc_switch:
+      - lambda: |-
+          std::string result= format_rc_switch_data(x);
+          id(rf_code_${frequency_fmt}).publish_state(result);
+      - delay: 200ms
+      - lambda: 'id(rf_code_${frequency_fmt}).publish_state("reset");'
+
+api:
+  actions:
+    - action: send_raw_rf_${frequency_fmt}
+      variables:
+        raw_data: "int[]"
+        times: int
+      then:
+        - lambda: |-
+            id(rf_transmitter_pins).set_pin(${send_pin});
+        - remote_transmitter.transmit_raw:
+            transmitter_id: rf_transmitter_pins
+            code: !lambda "std::vector<long int> std_vec(raw_data.begin(), raw_data.end()); return std_vec;"
+            repeat:
+              times: !lambda "return times;"
+              wait_time: 0s
+    - action: send_rc_switch_rf_${frequency_fmt}
+      variables:
+        code: string
+        protocol: int
+        times: int
+      then:
+        - lambda: |-
+            id(rf_transmitter_pins).set_pin(${send_pin});
+        - remote_transmitter.transmit_rc_switch_raw:
+            transmitter_id: rf_transmitter_pins
+            code: !lambda "return code;"
+            protocol: !lambda "return remote_base::RC_SWITCH_PROTOCOLS[protocol];"
+            repeat:
+              times: !lambda "return times;"
+              wait_time: 0s
+    - action: send_ev1527_rf_${frequency_fmt}
+      variables:
+        code: string
+        pulse_length: int
+        times: int
+      then:
+        - lambda: |-
+            id(rf_transmitter_pins).set_pin(${send_pin});
+        - remote_transmitter.transmit_rc_switch_raw:
+            transmitter_id: rf_transmitter_pins
+            code: !lambda "return code;"
+            protocol: !lambda "return remote_base::RCSwitchBase(pulse_length, pulse_length * 31, pulse_length, pulse_length * 3, pulse_length * 3, pulse_length, false);"
+            repeat:
+              times: !lambda "return times;"
+              wait_time: 0s
+
+text_sensor:
+  - platform: template
+    id: rf_code_${frequency_fmt}
+    name: RF code ${frequency_fmt}
+    icon: "mdi:code-json"
+
+switch:
+  - platform: template
+    id: rf_dump_${frequency_fmt}
+    name: RF dump ${frequency_fmt}
+    icon: "mdi:record-rec"
+    optimistic: true
+
+infrared:
+  - platform: ir_rf_proxy
+    name: ${frequency} Transmitter
+    id: tx_rf_${frequency_fmt}
+    remote_transmitter_id: rf_transmitter_pins
+    frequency: ${frequency_fmt}
+  - platform: ir_rf_proxy
+    name: ${frequency} Receiver
+    id: rx_rf_${frequency_fmt}
+    remote_receiver_id: rf_receiver_${frequency_fmt}
+    frequency: ${frequency_fmt}
