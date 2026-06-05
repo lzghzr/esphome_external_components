@@ -2,9 +2,6 @@ esphome:
   includes:
     - common/helpers.h
 
-substitutions:
-  frequency_fmt: ${frequency.replace(" ", "").lower()}
-
 remote_receiver:
   - id: rf_receiver_${frequency_fmt}
     pin: ${recv_pin}

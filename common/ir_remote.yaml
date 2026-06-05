@@ -2,9 +2,6 @@ esphome:
   includes:
     - common/helpers.h
 
-substitutions:
-  frequency_fmt: ${frequency.replace(" ", "").lower()}
-
 api:
   actions:
     - action: send_raw_ir_${frequency_fmt}

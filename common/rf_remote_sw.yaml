@@ -1,6 +1,3 @@
-substitutions:
-  frequency_fmt: ${frequency.replace(" ", "").lower()}
-
 packages:
   rf_remote: !include
     file: rf_remote_code.yaml

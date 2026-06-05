@@ -19,6 +19,7 @@ packages:
       recv_pin: 1
       send_pin: 4
       frequency: 38 kHz
+      frequency_fmt: 38khz
   # rf_remote_433: !include
   #   file: common/rf_remote.yaml
   #   vars:
@@ -41,12 +42,14 @@ packages:
       recv_pin: 0
       send_pin: 5
       frequency: 433 MHz
+      frequency_fmt: 433mhz
   rf_remote_315: !include
     file: common/rf_remote_pins.yaml
     vars:
       recv_pin: 20
       send_pin: 21
       frequency: 315 MHz
+      frequency_fmt: 315mhz
 
 esphome:
   name: esp32-c3-super-mini
