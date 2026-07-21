@@ -382,7 +382,7 @@ void HaierIrAcYrh63::setup() {
   climate_ir::ClimateIR::setup();
   base_rtc_ = make_entity_preference<HaierAcYrh63Protocol>();
   if (!base_rtc_.load(&_)) {
-    _ = {kHaierAcYrh63Model, 0x9C, 0xE0, 0, 0, 0, 0, 0, 0};
+    _ = {kHaierAcYrh63Model, 0x9C, 0xE0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   }
   publish_state_();
 }
@@ -556,46 +556,46 @@ bool HaierIrAcYrh63::on_receive(remote_base::RemoteReceiveData src) {
 }
 // 更新状态
 void HaierIrAcYrh63::publish_state_() {
+  set_health_switch();
+
+  set_lock_switch();
+
+  set_fresh_select();
+
+  set_sterilize_select();
+
+  set_vertical_select();
+
+  set_horizontal_select();
+
+  if (get_sleep()) {
+    preset = climate::CLIMATE_PRESET_SLEEP;
+  } else {
+    preset = climate::CLIMATE_PRESET_NONE;
+  }
+
+  target_temperature = get_temp();
+
+  switch (get_fan()) {
+    case kHaierAcYrh63FanLow:
+      fan_mode = climate::CLIMATE_FAN_LOW;
+      break;
+    case kHaierAcYrh63FanMed:
+      fan_mode = climate::CLIMATE_FAN_MEDIUM;
+      break;
+    case kHaierAcYrh63FanHigh:
+      fan_mode = climate::CLIMATE_FAN_HIGH;
+      break;
+    case kHaierAcYrh63FanAuto:
+      fan_mode = climate::CLIMATE_FAN_AUTO;
+      break;
+    default:
+      break;
+  }
+
   if (!get_power()) {
     mode = climate::CLIMATE_MODE_OFF;
   } else {
-    set_health_switch();
-
-    set_lock_switch();
-
-    set_fresh_select();
-
-    set_sterilize_select();
-
-    set_vertical_select();
-
-    set_horizontal_select();
-
-    if (get_sleep()) {
-      preset = climate::CLIMATE_PRESET_SLEEP;
-    } else {
-      preset = climate::CLIMATE_PRESET_NONE;
-    }
-
-    target_temperature = get_temp();
-
-    switch (get_fan()) {
-      case kHaierAcYrh63FanLow:
-        fan_mode = climate::CLIMATE_FAN_LOW;
-        break;
-      case kHaierAcYrh63FanMed:
-        fan_mode = climate::CLIMATE_FAN_MEDIUM;
-        break;
-      case kHaierAcYrh63FanHigh:
-        fan_mode = climate::CLIMATE_FAN_HIGH;
-        break;
-      case kHaierAcYrh63FanAuto:
-        fan_mode = climate::CLIMATE_FAN_AUTO;
-        break;
-      default:
-        break;
-    }
-
     switch (get_mode()) {
       case kHaierAcYrh63Auto:
         mode = climate::CLIMATE_MODE_AUTO;

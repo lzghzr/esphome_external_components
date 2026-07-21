@@ -415,44 +415,44 @@ bool HaierIrAcYrm09::on_receive(remote_base::RemoteReceiveData src) {
 }
 // 更新状态
 void HaierIrAcYrm09::publish_state_() {
+  set_health_switch();
+
+  set_heating_switch();
+
+  if (get_swing_v()) {
+    swing_mode = climate::CLIMATE_SWING_VERTICAL;
+  } else {
+    swing_mode = climate::CLIMATE_SWING_OFF;
+  }
+
+  if (get_sleep()) {
+    preset = climate::CLIMATE_PRESET_SLEEP;
+  } else {
+    preset = climate::CLIMATE_PRESET_NONE;
+  }
+
+  target_temperature = get_temp();
+
+  switch (get_fan()) {
+    case kHaierAcYrm09FanAuto:
+      fan_mode = climate::CLIMATE_FAN_AUTO;
+      break;
+    case kHaierAcYrm09FanLow:
+      fan_mode = climate::CLIMATE_FAN_LOW;
+      break;
+    case kHaierAcYrm09FanMed:
+      fan_mode = climate::CLIMATE_FAN_MEDIUM;
+      break;
+    case kHaierAcYrm09FanHigh:
+      fan_mode = climate::CLIMATE_FAN_HIGH;
+      break;
+    default:
+      break;
+  }
+
   if (get_command() == kHaierAcYrm09CmdOff) {
     mode = climate::CLIMATE_MODE_OFF;
   } else {
-    set_health_switch();
-
-    set_heating_switch();
-
-    if (get_swing_v()) {
-      swing_mode = climate::CLIMATE_SWING_VERTICAL;
-    } else {
-      swing_mode = climate::CLIMATE_SWING_OFF;
-    }
-
-    if (get_sleep()) {
-      preset = climate::CLIMATE_PRESET_SLEEP;
-    } else {
-      preset = climate::CLIMATE_PRESET_NONE;
-    }
-
-    target_temperature = get_temp();
-
-    switch (get_fan()) {
-      case kHaierAcYrm09FanAuto:
-        fan_mode = climate::CLIMATE_FAN_AUTO;
-        break;
-      case kHaierAcYrm09FanLow:
-        fan_mode = climate::CLIMATE_FAN_LOW;
-        break;
-      case kHaierAcYrm09FanMed:
-        fan_mode = climate::CLIMATE_FAN_MEDIUM;
-        break;
-      case kHaierAcYrm09FanHigh:
-        fan_mode = climate::CLIMATE_FAN_HIGH;
-        break;
-      default:
-        break;
-    }
-
     switch (get_mode()) {
       case kHaierAcYrm09Auto:
         mode = climate::CLIMATE_MODE_AUTO;
