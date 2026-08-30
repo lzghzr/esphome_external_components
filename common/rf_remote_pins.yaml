@@ -78,12 +78,14 @@ switch:
     icon: "mdi:record-rec"
     optimistic: true
 
-infrared:
+radio_frequency:
   - platform: ir_rf_proxy
     name: ${frequency} Transmitter
     id: tx_rf_${frequency_fmt}
     remote_transmitter_id: rf_transmitter_pins
     frequency: ${frequency_fmt}
+    on_control:
+      - lambda: "id(rf_transmitter_pins).set_pin(${send_pin});"
   - platform: ir_rf_proxy
     name: ${frequency} Receiver
     id: rx_rf_${frequency_fmt}

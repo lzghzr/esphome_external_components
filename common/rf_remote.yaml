@@ -27,7 +27,7 @@ remote_transmitter:
     carrier_duty_percent: 100%
     non_blocking: true
 
-infrared:
+radio_frequency:
   - platform: ir_rf_proxy
     name: ${frequency} Transmitter
     id: tx_rf_${frequency_fmt}
